@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public static class TriangulationTable {
-	public static readonly int[][] TriangleConnectionTable = new int[][] {
+public static class TriangulationHelper {
+	public static readonly int[][] TriangulationTable = new int[][] {
 		new int[] {},
 		new int[] {0, 8, 3},
 		new int[] {0, 1, 9},

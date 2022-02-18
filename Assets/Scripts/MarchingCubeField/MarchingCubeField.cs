@@ -3,108 +3,98 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class MarchingCubeField : MonoBehaviour {
-
     private MarchingCubeFieldData _data = new MarchingCubeFieldData();
     private Mesh _mesh;
     private MeshFilter _meshFilter;
+    [SerializeField]
+    public float distanceBetweenPoints = 1f;
+    [SerializeField]
+    public Vector3 fieldCenter = Vector3.zero;
+    [SerializeField]
+    public int numPointsAlongAxis = 3;
 
-    private float? _distanceBetweenPoints;
-    private Vector3? _fieldCenter;
-    private int? _numPointsAlongAxis;
-    public float DistanceBetweenPoints {
+    private int _x = 0;
+    private int _y = 0;
+    private int _z = 0;
+
+    public int TerrainThreshold {
         get {
-            return _distanceBetweenPoints ?? _data.distanceBetweenPoints;
+            return _data.terrainThreshold;
         }
         set {
-            _distanceBetweenPoints = value;
+            _data.terrainThreshold = value;
         }
     }
-    
-    public Vector3 FieldCenter {
-        get {
-            return _fieldCenter ?? _data.fieldCenter;
-        }
-        set {
-            _fieldCenter = value;
-        }
-    }
-    
-    public int NumPointsAlongAxis {
-        get {
-            return _numPointsAlongAxis ?? _data.numPointsAlongAxis;
-        }
-        set {
-            _numPointsAlongAxis = value;
-        }
+    public void Start() {
+        _meshFilter = gameObject.GetComponent<MeshFilter>();
+        _mesh = new Mesh();
+
+        GenerateValues();
+
+        StartCoroutine(MarchingCubesCoroutine());
     }
 
-    public Vector3 GetPointPosition(int x, int y, int z) {
-        return _data.getPointPosition(x, y, z);
-    }
-
-    public bool GetPointValue(int x, int y, int z) {
-        return _data.getPointValue(x, y, z);
-    }
-
-    public void RegenerateValues() {
-        _data.distanceBetweenPoints = DistanceBetweenPoints;
-        _data.fieldCenter = FieldCenter;
-        _data.numPointsAlongAxis = NumPointsAlongAxis;
+    public void GenerateValues() {
+        _data.distanceBetweenPoints = distanceBetweenPoints;
+        _data.fieldCenter = fieldCenter;
+        _data.numPointsAlongAxis = numPointsAlongAxis;
 
         _data.generateValues();
-        
+
+        _meshFilter = gameObject.GetComponent<MeshFilter>();
         _meshFilter.mesh = null;
     }
 
-    public void GenerateMesh() {
-        MarchingCubes();
-    }
-
-    private void OnDrawGizmosSelected() {
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(_data.fieldCenter, 0.25f);
-
-        for (int x = 0; x < NumPointsAlongAxis; x++) {
-            for (int y = 0; y < NumPointsAlongAxis; y++) {
-                for (int z = 0; z < NumPointsAlongAxis; z++) {
-                    Gizmos.color = GetPointValue(x, y, z) ? Color.white : Color.black;
-                    Gizmos.DrawSphere(GetPointPosition(x, y, z), 0.1f);
+    private void OnDrawGizmos() {
+        Gizmos.color = Color.white;
+        for (int x = 0; x < _data.numPointsAlongAxis; x++) {
+            for (int y = 0; y < _data.numPointsAlongAxis; y++) {
+                for (int z = 0; z < _data.numPointsAlongAxis; z++) {
+                    if (_data.getPointValue(x,y,z)) Gizmos.DrawSphere(_data.getPointPosition(x,y,z), 0.1f);
                 }
             }
         }
+
+        if (_x < _data.numPointsAlongAxis - 1 && _y < _data.numPointsAlongAxis - 1 && _z < _data.numPointsAlongAxis - 1) {
+            Gizmos.DrawWireCube(
+                _data.getPointPosition(_x, _y, _z) + Vector3.one * 0.5f * _data.distanceBetweenPoints,
+                Vector3.one * _data.distanceBetweenPoints
+            );
+        }
     }
 
+    private List<Vector3> newVerts = new List<Vector3>();
+    private List<int> newTris = new List<int>();
+
     public void MarchingCubes() {
+        _meshFilter = gameObject.GetComponent<MeshFilter>();
         _mesh = new Mesh();
 
-        List<Vector3> newVerts = new List<Vector3>();
-        List<int> newTris = new List<int>();
-        
-        int vertCount = 0;
+        int midpointVertCount = 0;
 
-        for (int x = 0; x < NumPointsAlongAxis - 1; x++) {
-            for (int y = 0; y < NumPointsAlongAxis - 1; y++) {
-                for (int z = 0; z < NumPointsAlongAxis - 1; z++) {
+        for (int y = -1; y < _data.numPointsAlongAxis+1; y++) {
+            for (int z = -1; z < _data.numPointsAlongAxis+1; z++) {
+                for (int x = -1; x < _data.numPointsAlongAxis+1; x++) {
                     bool[] cubeValues = {
-                        GetPointValue(x,   y,   z),
-                        GetPointValue(x+1, y,   z),
-                        GetPointValue(x+1, y,   z+1),
-                        GetPointValue(x,   y,   z+1),
-                        GetPointValue(x,   y+1, z),
-                        GetPointValue(x+1, y+1, z+1),
-                        GetPointValue(x+1, y+1, z+1),
-                        GetPointValue(x,   y+1, z+1)
+                        _data.getPointValue(x,   y,   z),
+                        _data.getPointValue(x+1, y,   z),
+                        _data.getPointValue(x+1, y,   z+1),
+                        _data.getPointValue(x,   y,   z+1),
+                        _data.getPointValue(x,   y+1, z),
+                        _data.getPointValue(x+1, y+1, z),
+                        _data.getPointValue(x+1, y+1, z+1),
+                        _data.getPointValue(x,   y+1, z+1)
                     };
 
                     Vector3[] cubePositions = {
-                        GetPointPosition(x,   y,   z),
-                        GetPointPosition(x+1, y,   z),
-                        GetPointPosition(x+1, y,   z+1),
-                        GetPointPosition(x,   y,   z+1),
-                        GetPointPosition(x,   y+1, z),
-                        GetPointPosition(x+1, y+1, z+1),
-                        GetPointPosition(x+1, y+1, z+1),
-                        GetPointPosition(x,   y+1, z+1)
+                        _data.getPointPosition(x,   y,   z),
+                        _data.getPointPosition(x+1, y,   z),
+                        _data.getPointPosition(x+1, y,   z+1),
+                        _data.getPointPosition(x,   y,   z+1),
+                        _data.getPointPosition(x,   y+1, z),
+                        _data.getPointPosition(x+1, y+1, z),
+                        _data.getPointPosition(x+1, y+1, z+1),
+                        _data.getPointPosition(x,   y+1, z+1)
                     };
 
                     int index = 0;
@@ -114,31 +104,99 @@ public class MarchingCubeField : MonoBehaviour {
                         }
                     }
 
-                    int[] connections = TriangulationTable.TriangleConnectionTable[index];
-                    
-                    if (connections.Length > 0) {
-                        Vector3[] connectionVertexes = MidpointHelper.GetConnectionVertexes(connections, cubePositions);
-                        newVerts.AddRange(connectionVertexes);
+                    int[] midpointIndexes = TriangulationHelper.TriangulationTable[index];
 
-                        int[] tris = new int[connections.Length];
-                        for (int i = 0; i< connections.Length; i++) {
-                            tris[i] = vertCount + i;
+                    if (midpointIndexes.Length > 0) {
+                        List<int> list = new List<int>();
+                        Vector3[] midpointPositions = MidpointHelper.GetMidpoints(midpointIndexes, cubePositions);
+                        newVerts.AddRange(midpointPositions);
+
+                        for (int i = 0; i < midpointIndexes.Length; i++) {
+                            newTris.Add(i + midpointVertCount);
                         }
-                        newTris.AddRange(tris);
-
-                        vertCount += connections.Length;
                     }
+
+                    midpointVertCount += midpointIndexes.Length;
+
+                    _mesh.vertices = newVerts.ToArray();
+                    _mesh.triangles = newTris.ToArray();
+
+                    _mesh.RecalculateNormals();
+                    _mesh.RecalculateBounds();
+
+                    _meshFilter.mesh = _mesh;
+                }
+            }
+        }
+    }
+
+    public IEnumerator MarchingCubesCoroutine() {
+        int midpointVertCount = 0;
+
+        yield return new WaitForSeconds(1f);
+
+        for (int y = -1; y < _data.numPointsAlongAxis; y++) {
+            for (int z = -1; z < _data.numPointsAlongAxis; z++) {
+                for (int x = -1; x < _data.numPointsAlongAxis; x++) {
+                    _x = x;
+                    _y = y;
+                    _z = z;
+
+                    bool[] cubeValues = {
+                        _data.getPointValue(x,   y,   z),
+                        _data.getPointValue(x+1, y,   z),
+                        _data.getPointValue(x+1, y,   z+1),
+                        _data.getPointValue(x,   y,   z+1),
+                        _data.getPointValue(x,   y+1, z),
+                        _data.getPointValue(x+1, y+1, z),
+                        _data.getPointValue(x+1, y+1, z+1),
+                        _data.getPointValue(x,   y+1, z+1)
+                    };
+
+                    Vector3[] cubePositions = {
+                        _data.getPointPosition(x,   y,   z),
+                        _data.getPointPosition(x+1, y,   z),
+                        _data.getPointPosition(x+1, y,   z+1),
+                        _data.getPointPosition(x,   y,   z+1),
+                        _data.getPointPosition(x,   y+1, z),
+                        _data.getPointPosition(x+1, y+1, z),
+                        _data.getPointPosition(x+1, y+1, z+1),
+                        _data.getPointPosition(x,   y+1, z+1)
+                    };
+
+                    int index = 0;
+                    for (int i = 0; i < 8; i++) {
+                        if (cubeValues[i]) {
+                            index += 1 << i;
+                        }
+                    }
+
+                    int[] midpointIndexes = TriangulationHelper.TriangulationTable[index];
+
+                    if (midpointIndexes.Length > 0) {
+                        Vector3[] midpointPositions = MidpointHelper.GetMidpoints(midpointIndexes, cubePositions);
+                        newVerts.AddRange(midpointPositions);
+
+                        for (int i = 0; i < midpointIndexes.Length; i++) {
+                            newTris.Add(i + midpointVertCount);
+                        }
+                    }
+
+                    midpointVertCount += midpointIndexes.Length;
+
+                    _mesh.vertices = newVerts.ToArray();
+                    _mesh.triangles = newTris.ToArray();
+
+                    _mesh.RecalculateNormals();
+                    _mesh.RecalculateBounds();
+
+                    _meshFilter.mesh = _mesh;
+
+                    yield return new WaitForSeconds(0.15f);
                 }
             }
         }
 
-        _mesh.vertices = newVerts.ToArray();
-        _mesh.triangles = newTris.ToArray();
-
-        _mesh.RecalculateNormals();
-        _mesh.RecalculateBounds();
-
-        _meshFilter = gameObject.GetComponent<MeshFilter>();
-        _meshFilter.mesh = _mesh;
+        yield return null;
     }
 }

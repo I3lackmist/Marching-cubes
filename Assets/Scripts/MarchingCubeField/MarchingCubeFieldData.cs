@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -8,42 +5,35 @@ public class MarchingCubeFieldData {
     public float distanceBetweenPoints;
     public Vector3 fieldCenter;
     public int numPointsAlongAxis;
+    public int terrainThreshold;
 
-    private bool[] pointValues;
+    private int[] pointValues;
 
-    public MarchingCubeFieldData() {
-        distanceBetweenPoints = 0.25f;
-        fieldCenter = Vector3.zero;
-        numPointsAlongAxis = 15;
-
-        generateValues();
-    }
+    public MarchingCubeFieldData() {}
 
     public void generateValues() {
         System.Random rnd = new System.Random();
-        pointValues = new bool[(int)Mathf.Pow(numPointsAlongAxis, 3)];
+        pointValues = new int[numPointsAlongAxis * numPointsAlongAxis * numPointsAlongAxis];
 
         for (int x = 0; x < numPointsAlongAxis; x++) {
             for (int y = 0; y < numPointsAlongAxis; y++) {
                 for (int z = 0; z < numPointsAlongAxis; z++) {
-                    pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] = ( rnd.Next(0, 100) > 50) ? true : false;
+                    pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] = Random.Range(0,101);
                 }
             }
         }
     }
 
     public Vector3 getPointPosition(int x, int y, int z) {
-        return 
+        return
             fieldCenter -
-            Vector3.one * ((float)numPointsAlongAxis * distanceBetweenPoints) / 2f + 
+            Vector3.one * (((float)numPointsAlongAxis - 1f) * distanceBetweenPoints) * 0.5f +
             new Vector3(x, y, z) * distanceBetweenPoints;
     }
 
     public bool getPointValue(int x, int y, int z) {
-        return pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x];
-    }
+        if (x<0 || x>=numPointsAlongAxis || y<0 || y>=numPointsAlongAxis || z<0 || z>=numPointsAlongAxis) return false;
 
-    public void togglePointValue(int x, int y, int z) {
-        pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] = !pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x];
+        return pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] >= terrainThreshold;
     }
 }

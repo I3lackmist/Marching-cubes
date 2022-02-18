@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 public class MidpointHelper {
-    public static Vector3[] GetConnectionVertexes(int[] connections, Vector3[] cube) {
+    public static Vector3[] GetMidpoints(int[] connections, Vector3[] cube) {
         Vector3[] result = new Vector3[connections.Length];
 
         for (int i = 0; i < connections.Length; i++) {
-            switch(i) {
+            switch(connections[i]) {
                 case 0:
                     result[i] = (cube[0] + cube[1]) / 2;
                     break;
