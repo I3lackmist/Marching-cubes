@@ -1,0 +1,27 @@
+#pragma kernel MarchingCubes
+
+struct ResultTriangle {
+    float3 vertexPositions[3];
+    int3 indexes[3];
+};
+
+AppendStructuredBuffer<ResultTriangle> resultTriangles;
+AppendStructuredBuffer<int> gridValues;
+
+float distanceBetweenPoints;
+float3 chunkOrigin;
+float terrainRatio;
+
+[numthreads(16,16,16)]
+void MarchingCubes (uint3 id : SV_DispatchThreadID) {
+	float cubePositions[] = {
+		chunkOrigin.x + id.x       * distanceBetweenPoints, chunkOrigin.y + id.y       * distanceBetweenPoints, chunkOrigin.z + id.z       * distanceBetweenPoints,
+        chunkOrigin.x + (id.x + 1) * distanceBetweenPoints, chunkOrigin.y + id.y       * distanceBetweenPoints, chunkOrigin.z + id.z       * distanceBetweenPoints,
+        chunkOrigin.x + (id.x + 1) * distanceBetweenPoints, chunkOrigin.y + id.y       * distanceBetweenPoints, chunkOrigin.z + (id.z + 1) * distanceBetweenPoints,
+        chunkOrigin.x + id.x       * distanceBetweenPoints, chunkOrigin.y + id.y       * distanceBetweenPoints, chunkOrigin.z + (id.z + 1) * distanceBetweenPoints,
+        chunkOrigin.x + id.x       * distanceBetweenPoints, chunkOrigin.y + (id.y + 1) * distanceBetweenPoints, chunkOrigin.z + id.z       * distanceBetweenPoints,
+        chunkOrigin.x + (id.x + 1) * distanceBetweenPoints, chunkOrigin.y + (id.y + 1) * distanceBetweenPoints, chunkOrigin.z + id.z       * distanceBetweenPoints,
+        chunkOrigin.x + (id.x + 1) * distanceBetweenPoints, chunkOrigin.y + (id.y + 1) * distanceBetweenPoints, chunkOrigin.z + (id.z + 1) * distanceBetweenPoints,
+        chunkOrigin.x + id.x       * distanceBetweenPoints, chunkOrigin.y + (id.y + 1) * distanceBetweenPoints, chunkOrigin.z + (id.z + 1) * distanceBetweenPoints
+	};
+}

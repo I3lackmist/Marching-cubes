@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 [System.Serializable]
@@ -5,7 +6,20 @@ public class MarchingCubeFieldData {
     public float distanceBetweenPoints;
     public Vector3 fieldCenter;
     public int numPointsAlongAxis;
-    public int terrainThreshold;
+    private float _terrainRatio;
+    private float _terrainThreshold;
+
+    public float TerrainRatio {
+        get {
+            return _terrainRatio;
+        }
+        set {
+            _terrainRatio = value;
+            _terrainThreshold = Mathf.RoundToInt((valueMin + valueMax) * _terrainRatio);
+        }
+    }
+
+    public float valueMin, valueMax;
 
     private int[] pointValues;
 
@@ -18,10 +32,13 @@ public class MarchingCubeFieldData {
         for (int x = 0; x < numPointsAlongAxis; x++) {
             for (int y = 0; y < numPointsAlongAxis; y++) {
                 for (int z = 0; z < numPointsAlongAxis; z++) {
-                    pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] = Random.Range(0,101);
+                    pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] =  rnd.Next(0,100);
                 }
             }
         }
+
+        valueMin = pointValues.Min();
+        valueMax = pointValues.Max();
     }
 
     public Vector3 getPointPosition(int x, int y, int z) {
@@ -34,6 +51,6 @@ public class MarchingCubeFieldData {
     public bool getPointValue(int x, int y, int z) {
         if (x<0 || x>=numPointsAlongAxis || y<0 || y>=numPointsAlongAxis || z<0 || z>=numPointsAlongAxis) return false;
 
-        return pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] >= terrainThreshold;
+        return pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] > _terrainThreshold;
     }
 }

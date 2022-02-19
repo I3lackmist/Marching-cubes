@@ -6,23 +6,32 @@ public class MarchingCubeField : MonoBehaviour {
     private MarchingCubeFieldData _data = new MarchingCubeFieldData();
     private Mesh _mesh;
     private MeshFilter _meshFilter;
+
     [SerializeField]
     public float distanceBetweenPoints = 1f;
+
     [SerializeField]
     public Vector3 fieldCenter = Vector3.zero;
+
     [SerializeField]
     public int numPointsAlongAxis = 3;
+
+    [SerializeField]
+    [HideInInspector]
+    private float terrainRatio = 0.5f;
 
     private int _x = 0;
     private int _y = 0;
     private int _z = 0;
 
-    public int TerrainThreshold {
+    public float TerrainRatio {
         get {
-            return _data.terrainThreshold;
+            return terrainRatio;
         }
         set {
-            _data.terrainThreshold = value;
+            terrainRatio = value;
+            _data.TerrainRatio = terrainRatio;
+            MarchingCubes();
         }
     }
     public void Start() {
@@ -45,30 +54,15 @@ public class MarchingCubeField : MonoBehaviour {
         _meshFilter.mesh = null;
     }
 
-    private void OnDrawGizmos() {
-        Gizmos.color = Color.white;
-        for (int x = 0; x < _data.numPointsAlongAxis; x++) {
-            for (int y = 0; y < _data.numPointsAlongAxis; y++) {
-                for (int z = 0; z < _data.numPointsAlongAxis; z++) {
-                    if (_data.getPointValue(x,y,z)) Gizmos.DrawSphere(_data.getPointPosition(x,y,z), 0.1f);
-                }
-            }
-        }
-
-        if (_x < _data.numPointsAlongAxis - 1 && _y < _data.numPointsAlongAxis - 1 && _z < _data.numPointsAlongAxis - 1) {
-            Gizmos.DrawWireCube(
-                _data.getPointPosition(_x, _y, _z) + Vector3.one * 0.5f * _data.distanceBetweenPoints,
-                Vector3.one * _data.distanceBetweenPoints
-            );
-        }
-    }
-
-    private List<Vector3> newVerts = new List<Vector3>();
-    private List<int> newTris = new List<int>();
+    private List<Vector3> _newVerts = new List<Vector3>();
+    private List<int> _newTris = new List<int>();
 
     public void MarchingCubes() {
         _meshFilter = gameObject.GetComponent<MeshFilter>();
         _mesh = new Mesh();
+
+        _newTris = new List<int>();
+        _newVerts = new List<Vector3>();
 
         int midpointVertCount = 0;
 
@@ -109,17 +103,17 @@ public class MarchingCubeField : MonoBehaviour {
                     if (midpointIndexes.Length > 0) {
                         List<int> list = new List<int>();
                         Vector3[] midpointPositions = MidpointHelper.GetMidpoints(midpointIndexes, cubePositions);
-                        newVerts.AddRange(midpointPositions);
+                        _newVerts.AddRange(midpointPositions);
 
                         for (int i = 0; i < midpointIndexes.Length; i++) {
-                            newTris.Add(i + midpointVertCount);
+                            _newTris.Add(i + midpointVertCount);
                         }
                     }
 
                     midpointVertCount += midpointIndexes.Length;
 
-                    _mesh.vertices = newVerts.ToArray();
-                    _mesh.triangles = newTris.ToArray();
+                    _mesh.vertices = _newVerts.ToArray();
+                    _mesh.triangles = _newTris.ToArray();
 
                     _mesh.RecalculateNormals();
                     _mesh.RecalculateBounds();
@@ -175,17 +169,17 @@ public class MarchingCubeField : MonoBehaviour {
 
                     if (midpointIndexes.Length > 0) {
                         Vector3[] midpointPositions = MidpointHelper.GetMidpoints(midpointIndexes, cubePositions);
-                        newVerts.AddRange(midpointPositions);
+                        _newVerts.AddRange(midpointPositions);
 
                         for (int i = 0; i < midpointIndexes.Length; i++) {
-                            newTris.Add(i + midpointVertCount);
+                            _newTris.Add(i + midpointVertCount);
                         }
                     }
 
                     midpointVertCount += midpointIndexes.Length;
 
-                    _mesh.vertices = newVerts.ToArray();
-                    _mesh.triangles = newTris.ToArray();
+                    _mesh.vertices = _newVerts.ToArray();
+                    _mesh.triangles = _newTris.ToArray();
 
                     _mesh.RecalculateNormals();
                     _mesh.RecalculateBounds();

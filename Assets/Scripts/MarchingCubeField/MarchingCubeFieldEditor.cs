@@ -8,7 +8,7 @@ public class MarchingCubeFieldEditor : Editor {
 
         MarchingCubeField marchingCubeField = (MarchingCubeField)target;
 
-        marchingCubeField.TerrainThreshold = EditorGUILayout.IntField("Terrain threshold", marchingCubeField.TerrainThreshold);
+        marchingCubeField.TerrainRatio = EditorGUILayout.Slider("Terrain ratio", marchingCubeField.TerrainRatio, 0f, 1f);
 
         if (GUILayout.Button("Generate field")) {
             marchingCubeField.GenerateValues();
