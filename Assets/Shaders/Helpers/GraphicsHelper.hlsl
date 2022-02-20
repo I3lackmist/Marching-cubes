@@ -1,4 +1,4 @@
-#Credit to Ned Makes Games
+//Credit to Ned Makes Games
 #ifndef NMG_GRAPHICS_HELPERS_INCLUDED
 #define NMG_GRAPHICS_HELPERS_INCLUDED
 

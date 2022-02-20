@@ -1,26 +1,18 @@
 using UnityEngine;
+
 public class Chunk : MonoBehaviour {
     [SerializeField]
     private ComputeShader _shader;
 
     [SerializeField]
     [HideInInspector]
-    public float distanceBetweenPoints;
+    public ChunkOptions options;
 
-
-    public void OnDrawGizmos() {
-        Vector3 origin = transform.position;
-
-        for(int x = 0; x < 16; x++) {
-            for(int y = 0; y < 16; y++) {
-                for(int z = 0; z < 16; z++) {
-                    Gizmos.DrawCube(origin + new Vector3(x,y,z) * distanceBetweenPoints, Vector3.one * 0.25f);
-                }
-            }
-        }
+    void OnDrawGizmos() {
+        Gizmos.DrawWireCube(transform.position + (Vector3.one * options.distanceBetweenPoints*4),  Vector3.one * options.distanceBetweenPoints*8);
     }
 
     public void BakeMesh() {
-        gameObject.GetComponent<MeshFilter>().mesh = ChunkBaker.BakeChunkMesh(_shader, gameObject.GetComponent<Transform>().position);
+        gameObject.GetComponent<MeshFilter>().mesh = ChunkBaker.BakeChunkMesh(_shader, options);
     }
 }
