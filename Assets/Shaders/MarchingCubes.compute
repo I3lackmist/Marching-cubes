@@ -2,6 +2,8 @@
 
 #pragma kernel MarchingCubes
 
+static const uint numThreads = 8;
+
 struct ResultTriangle {
     float3 vertexA;
     float3 vertexB;
@@ -9,76 +11,47 @@ struct ResultTriangle {
 };
 
 AppendStructuredBuffer<ResultTriangle> resultTriangles;
-RWStructuredBuffer<uint> resultTriangleCount;
 
 float distanceBetweenPoints;
 float3 chunkOrigin;
-float terrainRatio;
 
-int2 midpointPairs[] = {
-    {0, 1},
-    {1, 2},
-    {2, 3},
-    {3, 0},
-    {4, 5},
-    {5, 6},
-    {6, 7},
-    {7, 4},
-    {4, 0},
-    {5, 1},
-    {6, 2},
-    {7, 3}
-};
+[numthreads(numThreads, numThreads, numThreads)]
+void MarchingCubes (uint3 tid : SV_GroupThreadID) {
+    if (tid.x == numThreads-1 || tid.y == numThreads-1 || tid.z == numThreads-1) { return; }
 
-[numthreads(8,8,8)]
-void MarchingCubes (uint3 id : SV_DispatchThreadID) {
 	float3 cubePositions[] = {
-        {chunkOrigin.x + id.x *       distanceBetweenPoints, chunkOrigin.y + id.y       * distanceBetweenPoints, chunkOrigin.z + id.z       * distanceBetweenPoints},
-        {chunkOrigin.x + (id.x + 1) * distanceBetweenPoints, chunkOrigin.y + id.y       * distanceBetweenPoints, chunkOrigin.z + id.z       * distanceBetweenPoints},
-        {chunkOrigin.x + (id.x + 1) * distanceBetweenPoints, chunkOrigin.y + id.y       * distanceBetweenPoints, chunkOrigin.z + (id.z + 1) * distanceBetweenPoints},
-        {chunkOrigin.x + id.x *       distanceBetweenPoints, chunkOrigin.y + id.y       * distanceBetweenPoints, chunkOrigin.z + (id.z + 1) * distanceBetweenPoints},
-        {chunkOrigin.x + id.x *       distanceBetweenPoints, chunkOrigin.y + (id.y + 1) * distanceBetweenPoints, chunkOrigin.z + id.z       * distanceBetweenPoints},
-        {chunkOrigin.x + (id.x + 1) * distanceBetweenPoints, chunkOrigin.y + (id.y + 1) * distanceBetweenPoints, chunkOrigin.z + id.z       * distanceBetweenPoints},
-        {chunkOrigin.x + (id.x + 1) * distanceBetweenPoints, chunkOrigin.y + (id.y + 1) * distanceBetweenPoints, chunkOrigin.z + (id.z + 1) * distanceBetweenPoints},
-        {chunkOrigin.x + id.x *       distanceBetweenPoints, chunkOrigin.y + (id.y + 1) * distanceBetweenPoints, chunkOrigin.z + (id.z + 1) * distanceBetweenPoints}
+        {chunkOrigin.x + (float)(tid.x)     * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y)     * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z)     * distanceBetweenPoints},
+        {chunkOrigin.x + (float)(tid.x + 1) * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y)     * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z)     * distanceBetweenPoints},
+        {chunkOrigin.x + (float)(tid.x + 1) * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y)     * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z + 1) * distanceBetweenPoints},
+        {chunkOrigin.x + (float)(tid.x)     * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y)     * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z + 1) * distanceBetweenPoints},
+        {chunkOrigin.x + (float)(tid.x)     * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y + 1) * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z)     * distanceBetweenPoints},
+        {chunkOrigin.x + (float)(tid.x + 1) * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y + 1) * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z)     * distanceBetweenPoints},
+        {chunkOrigin.x + (float)(tid.x + 1) * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y + 1) * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z + 1) * distanceBetweenPoints},
+        {chunkOrigin.x + (float)(tid.x)     * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y + 1) * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z + 1) * distanceBetweenPoints}
     };
 
-    int cubeValues[8];
+    int index = 1;
 
-    int index = 0;
-
-    for (int i = 0; i < 8; i++) {
-        cubeValues[i] = i<4;
-        index = index + (cubeValues[i] > 0) * pow(2, i);;
-    }
-
-    int midpointVertexIndexes[16] = triTable[index];
+    // int index = 0;
+    // for (int i = 0; i < 8; i++) {
+    //     index += pow(2,i) * (i>4);
+    // }
 
     int midpointVertexCount = 0;
-    while (midpointVertexIndexes[midpointVertexCount] != -1) {
+    while (triTable[index][midpointVertexCount] != -1) {
         midpointVertexCount++;
     }
 
-    for (int i = 0; i < midpointVertexCount/3; i++) {
+    for (int j = 0; j < midpointVertexCount/3; j++) {
         ResultTriangle resultTriangle;
-        float3 midpoint;
+        float3 midpointA;
+        float3 midpointB;
+        float3 midpointC;
 
-        midpoint = (cubePositions[midpointPairs[midpointVertexIndexes[i * 3]].x]     + cubePositions[midpointPairs[midpointVertexIndexes[i * 3]].y])    / 2;
-        resultTriangle.vertexA.x = midpoint.x;
-        resultTriangle.vertexA.y = midpoint.y;
-        resultTriangle.vertexA.z = midpoint.z;
-
-        midpoint = (cubePositions[midpointPairs[midpointVertexIndexes[i * 3 + 1]].x] + cubePositions[midpointPairs[midpointVertexIndexes[i * 3 + 1]].y]) / 2;
-        resultTriangle.vertexB.x = midpoint.x;
-        resultTriangle.vertexB.y = midpoint.y;
-        resultTriangle.vertexB.z = midpoint.z;
-
-        midpoint = (cubePositions[midpointPairs[midpointVertexIndexes[i * 3 + 2]].x] + cubePositions[midpointPairs[midpointVertexIndexes[i * 3 + 2]].y]) / 2;
-        resultTriangle.vertexC.x = midpoint.x;
-        resultTriangle.vertexC.y = midpoint.y;
-        resultTriangle.vertexC.z = midpoint.z;
+        resultTriangle.vertexA = (cubePositions[midpointPairs[triTable[index][j * 3]].x]     + cubePositions[midpointPairs[triTable[index][j * 3]].y])     / 2;
+        resultTriangle.vertexB = (cubePositions[midpointPairs[triTable[index][j * 3 + 1]].x] + cubePositions[midpointPairs[triTable[index][j * 3 + 1]].y]) / 2;
+        resultTriangle.vertexC = (cubePositions[midpointPairs[triTable[index][j * 3 + 2]].x] + cubePositions[midpointPairs[triTable[index][j * 3 + 2]].y]) / 2;
 
         resultTriangles.Append(resultTriangle);
-        resultTriangleCount[0]++;
     }
 }

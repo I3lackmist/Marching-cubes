@@ -1,6 +1,21 @@
 #ifndef TriangulationHelper
 #define TriangulationHelper
 
+static const int2 midpointPairs[] = {
+    {0, 1},
+    {1, 2},
+    {2, 3},
+    {3, 0},
+    {4, 5},
+    {5, 6},
+    {6, 7},
+    {7, 4},
+    {4, 0},
+    {5, 1},
+    {6, 2},
+    {7, 3}
+};
+
 static const int triTable[256][16] = {
     {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
     {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
