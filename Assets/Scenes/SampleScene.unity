@@ -220,8 +220,8 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 631025986}
-  m_Mesh: {fileID: 631121792}
---- !u!43 &631121792
+  m_Mesh: {fileID: 649655155}
+--- !u!43 &649655155
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -625,8 +625,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chunkPrefab: {fileID: 6543065741077728838, guid: 975782f2c759e9344adfe167a9401219, type: 3}
-  volumeSize: {x: 3, y: 3, z: 3}
-  distanceBetweenPoints: 0.25
+  volumeSize: {x: 2, y: 1, z: 2}
+  distanceBetweenPoints: 0.5
   terrainRatio: 0.5
   pointsPerAxis: 8
   chunkGameObjects: []

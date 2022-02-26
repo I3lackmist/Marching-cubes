@@ -22,29 +22,40 @@ public class ChunkVolume : MonoBehaviour {
     [HideInInspector]
     private GameObject[] chunkGameObjects;
 
-    public void Reset() {
+    public void ResetChunks() {
+        if(chunkGameObjects == null) return;
+
         foreach (GameObject chunk in chunkGameObjects) {
             DestroyImmediate(chunk);
         }
-
-        chunkGameObjects = new GameObject[] {};
     }
 
-    public void CreateTerrain() {
-        Reset();
+    public void ResetMeshes() {
+        foreach (GameObject chunk in chunkGameObjects) {
+            chunk.GetComponent<MeshFilter>().mesh = new Mesh();
+        }
+    }
 
-        Vector3 center = transform.position;
+    public void MakeChunks() {
+        ResetChunks();
+
+        Vector3 volumeOrigin = transform.position;
+        Vector3 halfCubeOffset = Vector3.one * (pointsPerAxis/2) * distanceBetweenPoints;
+        Vector3 cubeOffset = halfCubeOffset * 2;
 
         List<GameObject> chunkGameObjectList = new List<GameObject>();
 
         for(int x = 0; x < volumeSize.x; x++) {
             for(int y = 0; y < volumeSize.y; y++) {
                 for(int z = 0; z < volumeSize.z; z++) {
-                    GameObject newChunk = GameObject.Instantiate(chunkPrefab, center + new Vector3(x,y,z) * distanceBetweenPoints * pointsPerAxis, Quaternion.identity, transform);
+                    Vector3 iteratedCubeOffset = new Vector3(x,y,z);
+                    iteratedCubeOffset.Scale(cubeOffset);
+
+                    GameObject newChunk = GameObject.Instantiate(chunkPrefab, volumeOrigin + iteratedCubeOffset, Quaternion.identity, transform);
 
                     newChunk.GetComponent<Chunk>().options = new ChunkOptions() {
                         distanceBetweenPoints = distanceBetweenPoints,
-                        chunkOrigin = newChunk.transform.position - Vector3.one * pointsPerAxis/2 * distanceBetweenPoints,
+                        chunkOrigin = newChunk.transform.position - halfCubeOffset,
                         terrainRatio = terrainRatio,
                         pointsPerAxis = pointsPerAxis
                     };
@@ -55,6 +66,10 @@ public class ChunkVolume : MonoBehaviour {
         }
 
         chunkGameObjects = chunkGameObjectList.ToArray();
+    }
+
+    public void MakeMeshes() {
+        ResetMeshes();
 
         foreach(GameObject chunkGameObject in chunkGameObjects) {
             chunkGameObject.GetComponent<Chunk>().BakeMesh();

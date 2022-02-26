@@ -17,7 +17,7 @@ float3 chunkOrigin;
 
 [numthreads(numThreads, numThreads, numThreads)]
 void MarchingCubes (uint3 tid : SV_GroupThreadID) {
-    if (tid.x == numThreads-1 || tid.y == numThreads-1 || tid.z == numThreads-1) { return; }
+    if (tid.x >= numThreads || tid.y >= numThreads || tid.z >= numThreads) { return; }
 
 	float3 cubePositions[] = {
         {chunkOrigin.x + (float)(tid.x)     * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y)     * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z)     * distanceBetweenPoints},

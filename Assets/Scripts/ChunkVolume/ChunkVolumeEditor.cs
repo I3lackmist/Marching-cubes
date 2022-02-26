@@ -8,12 +8,20 @@ public class ChunkVolumeEditor : Editor {
 
         ChunkVolume chunkVolume = (ChunkVolume)target;
 
-        if (GUILayout.Button("Create terrain")) {
-            chunkVolume.CreateTerrain();
+        if (GUILayout.Button("Make chunks")) {
+            chunkVolume.MakeChunks();
         }
 
-        if (GUILayout.Button("Reset")) {
-            chunkVolume.Reset();
+        if (GUILayout.Button("Make meshes")) {
+            chunkVolume.MakeMeshes();
+        }
+
+        if (GUILayout.Button("Reset chunks")) {
+            chunkVolume.ResetChunks();
+        }
+
+        if (GUILayout.Button("Reset meshes")) {
+            chunkVolume.ResetMeshes();
         }
     }
 }
