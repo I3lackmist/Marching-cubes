@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using System;
 using UnityEngine;
 
@@ -10,7 +9,6 @@ public class Chunk : MonoBehaviour {
     [HideInInspector]
     public ChunkOptions options;
 
-    private bool renderLock = false;
     void OnDrawGizmos() {
         Gizmos.color = Color.white;
         Gizmos.DrawWireCube(
@@ -24,13 +22,8 @@ public class Chunk : MonoBehaviour {
 
     public void SetMesh(Mesh mesh) {
         gameObject.GetComponent<MeshFilter>().mesh = mesh;
-        renderLock = false;
     }
     public void BakeMesh() {
-        if (renderLock) return;
-
-        renderLock = true;
-
         Action<Mesh> setMeshAction = SetMesh;
 
         ChunkBaker.BakeChunkMesh(_marchingCubeShader, options, setMeshAction);

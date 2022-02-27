@@ -51,11 +51,12 @@ public class ChunkVolume : MonoBehaviour {
                     Vector3 iteratedCubeOffset = new Vector3(x,y,z);
                     iteratedCubeOffset.Scale(cubeOffset);
 
-                    GameObject newChunk = GameObject.Instantiate(chunkPrefab, volumeOrigin + iteratedCubeOffset, Quaternion.identity, transform);
+                    GameObject newChunk = GameObject.Instantiate(chunkPrefab, volumeOrigin + iteratedCubeOffset, Quaternion.identity);
 
                     newChunk.GetComponent<Chunk>().options = new ChunkOptions() {
                         distanceBetweenPoints = distanceBetweenPoints,
                         chunkOrigin = newChunk.transform.position - halfCubeOffset,
+                        chunkIndex = new Vector3Int(x,y,z),
                         terrainRatio = terrainRatio,
                         pointsPerAxis = pointsPerAxis
                     };

@@ -25,12 +25,11 @@ public static class ChunkBaker {
             verts.Add(triangle.vertexB);
             verts.Add(triangle.vertexC);
 
-            tris.Add(vertIndex+2);
-            tris.Add(vertIndex+1);
-            tris.Add(vertIndex);
-
-            vertIndex+=3;
+            tris.Add(vertIndex++);
+            tris.Add(vertIndex++);
+            tris.Add(vertIndex++);
         }
+
         mesh.vertices = verts.ToArray();
         mesh.triangles = tris.ToArray();
 
@@ -42,7 +41,7 @@ public static class ChunkBaker {
         return mesh;
     }
 
-    public static void BakeChunkMesh(ComputeShader shader, ChunkOptions options, Action<Mesh> callback) {
+    public static void BakeChunkMesh(ComputeShader shader, ChunkOptions options, Action<Mesh> setMeshCallback) {
         int kernelId = shader.FindKernel("MarchingCubes");
 
         int totalCubes = (int)Mathf.Pow(options.pointsPerAxis-1, 3);
@@ -52,6 +51,12 @@ public static class ChunkBaker {
 
         shader.SetFloat("distanceBetweenPoints", options.distanceBetweenPoints);
 
+        shader.SetInts("chunkIndex", new int[3] {
+            options.chunkIndex.x,
+            options.chunkIndex.y,
+            options.chunkIndex.z
+        });
+
         shader.SetFloats("chunkOrigin", new float[3] {
                 options.chunkOrigin.x,
                 options.chunkOrigin.y,
@@ -59,19 +64,18 @@ public static class ChunkBaker {
             }
         );
 
-        AsyncGPUReadback.Request(resultTrianglesBuffer);
-
         shader.SetBuffer(kernelId, "resultTriangles", resultTrianglesBuffer);
-
         shader.Dispatch(kernelId, 1, 1, 1);
-        ResultTriangle[] resultTriangles = new ResultTriangle[resultTrianglesBuffer.count];
+
 
         AsyncGPUReadback.Request(resultTrianglesBuffer, (request) => {
-            resultTriangles = request.GetData<ResultTriangle>(0).ToArray();
-            resultTrianglesBuffer.Release();
+            ResultTriangle[] resultTriangles = new ResultTriangle[resultTrianglesBuffer.count];
+            resultTriangles = request.GetData<ResultTriangle>().ToArray();
 
             Mesh resultMesh = CreateMesh(resultTriangles);
-            callback(resultMesh);
+            setMeshCallback(resultMesh);
+
+            resultTrianglesBuffer.Release();
         });
     }
 }

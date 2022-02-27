@@ -2,7 +2,7 @@
 
 #pragma kernel MarchingCubes
 
-static const uint numThreads = 8;
+static const uint NUM_THREADS = 8;
 
 struct ResultTriangle {
     float3 vertexA;
@@ -14,35 +14,48 @@ AppendStructuredBuffer<ResultTriangle> resultTriangles;
 
 float distanceBetweenPoints;
 float3 chunkOrigin;
+int3 chunkIndex;
 
-[numthreads(numThreads, numThreads, numThreads)]
+[numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
 void MarchingCubes (uint3 tid : SV_GroupThreadID) {
-    if (tid.x >= numThreads || tid.y >= numThreads || tid.z >= numThreads) { return; }
+    if (tid.x >= NUM_THREADS || tid.y >= NUM_THREADS || tid.z >= NUM_THREADS) { return; }
+
+    float middleOffset = NUM_THREADS * -0.25 * distanceBetweenPoints;
 
 	float3 cubePositions[] = {
-        {chunkOrigin.x + (float)(tid.x)     * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y)     * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z)     * distanceBetweenPoints},
-        {chunkOrigin.x + (float)(tid.x + 1) * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y)     * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z)     * distanceBetweenPoints},
-        {chunkOrigin.x + (float)(tid.x + 1) * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y)     * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z + 1) * distanceBetweenPoints},
-        {chunkOrigin.x + (float)(tid.x)     * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y)     * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z + 1) * distanceBetweenPoints},
-        {chunkOrigin.x + (float)(tid.x)     * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y + 1) * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z)     * distanceBetweenPoints},
-        {chunkOrigin.x + (float)(tid.x + 1) * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y + 1) * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z)     * distanceBetweenPoints},
-        {chunkOrigin.x + (float)(tid.x + 1) * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y + 1) * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z + 1) * distanceBetweenPoints},
-        {chunkOrigin.x + (float)(tid.x)     * distanceBetweenPoints, chunkOrigin.y + (float)(tid.y + 1) * distanceBetweenPoints, chunkOrigin.z + (float)(tid.z + 1) * distanceBetweenPoints}
+        {(tid.x)     * distanceBetweenPoints + middleOffset, (tid.y)     * distanceBetweenPoints + middleOffset, (tid.z)     * distanceBetweenPoints + middleOffset},
+        {(tid.x + 1) * distanceBetweenPoints + middleOffset, (tid.y)     * distanceBetweenPoints + middleOffset, (tid.z)     * distanceBetweenPoints + middleOffset},
+        {(tid.x + 1) * distanceBetweenPoints + middleOffset, (tid.y)     * distanceBetweenPoints + middleOffset, (tid.z + 1) * distanceBetweenPoints + middleOffset},
+        {(tid.x)     * distanceBetweenPoints + middleOffset, (tid.y)     * distanceBetweenPoints + middleOffset, (tid.z + 1) * distanceBetweenPoints + middleOffset},
+        {(tid.x)     * distanceBetweenPoints + middleOffset, (tid.y + 1) * distanceBetweenPoints + middleOffset, (tid.z)     * distanceBetweenPoints + middleOffset},
+        {(tid.x + 1) * distanceBetweenPoints + middleOffset, (tid.y + 1) * distanceBetweenPoints + middleOffset, (tid.z)     * distanceBetweenPoints + middleOffset},
+        {(tid.x + 1) * distanceBetweenPoints + middleOffset, (tid.y + 1) * distanceBetweenPoints + middleOffset, (tid.z + 1) * distanceBetweenPoints + middleOffset},
+        {(tid.x)     * distanceBetweenPoints + middleOffset, (tid.y + 1) * distanceBetweenPoints + middleOffset, (tid.z + 1) * distanceBetweenPoints + middleOffset}
     };
 
-    int index = 1;
+    uint values[] = {
+        ((tid.x)   > 0) * ((tid.x)   < 4) * ((tid.y) > 0)   * ((tid.y)  < 4)  * ((tid.z)   > 0) * (tid.z   < 4),
+        ((tid.x+1) > 0) * ((tid.x+1) < 4) * ((tid.y) > 0)   * ((tid.y)  < 4)  * ((tid.z)   > 0) * (tid.z   < 4),
+        ((tid.x+1) > 0) * ((tid.x+1) < 4) * ((tid.y) > 0)   * ((tid.y)  < 4)  * ((tid.z+1) > 0) * (tid.z+1 < 4),
+        ((tid.x)   > 0) * ((tid.x)   < 4) * ((tid.y) > 0)   * ((tid.y)  < 4)  * ((tid.z+1) > 0) * (tid.z+1 < 4),
+        ((tid.x)   > 0) * ((tid.x)   < 4) * ((tid.y+1) > 0) * ((tid.y+1) < 4) * ((tid.z)   > 0) * (tid.z   < 4),
+        ((tid.x+1) > 0) * ((tid.x+1) < 4) * ((tid.y+1) > 0) * ((tid.y+1) < 4) * ((tid.z)   > 0) * (tid.z   < 4),
+        ((tid.x+1) > 0) * ((tid.x+1) < 4) * ((tid.y+1) > 0) * ((tid.y+1) < 4) * ((tid.z+1) > 0) * (tid.z+1 < 4),
+        ((tid.x)   > 0) * ((tid.x)   < 4) * ((tid.y+1) > 0) * ((tid.y+1) < 4) * ((tid.z+1) > 0) * (tid.z+1 < 4)
+    };
 
-    // int index = 0;
-    // for (int i = 0; i < 8; i++) {
-    //     index += pow(2,i) * (i>4);
-    // }
+    uint index = 0;
 
-    int midpointVertexCount = 0;
+    for (uint i = 0; i < 8; i++) {
+        index += pow(2,i) * values[i];
+    }
+
+    uint midpointVertexCount = 0;
     while (triTable[index][midpointVertexCount] != -1) {
         midpointVertexCount++;
     }
 
-    for (int j = 0; j < midpointVertexCount/3; j++) {
+    for (uint j = 0; j < midpointVertexCount/3; j++) {
         ResultTriangle resultTriangle;
         float3 midpointA;
         float3 midpointB;
