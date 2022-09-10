@@ -1,7 +1,7 @@
 #ifndef TriangulationHelper
 #define TriangulationHelper
 
-static const int2 midpointPairs[] = {
+static const int2 MIDPOINT_PAIRS[] = {
     {0, 1},
     {1, 2},
     {2, 3},
@@ -16,7 +16,7 @@ static const int2 midpointPairs[] = {
     {7, 3}
 };
 
-static const int triTable[256][16] = {
+static const int TRI_TABLE[256][16] = {
     {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
     {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
     {0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},

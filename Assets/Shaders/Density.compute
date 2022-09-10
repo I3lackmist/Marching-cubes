@@ -1,0 +1,16 @@
+#pragma kernel Density
+
+#include "./Helpers/ComputeConstants.hlsl"
+#include "./Helpers/Noise.compute"
+
+RWStructuredBuffer<float> isoValues;
+
+[numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
+void Density (int3 tid: SV_DispatchThreadID)
+{
+    if (tid.x >= POINT_PER_AXIS || tid.y >= POINT_PER_AXIS || tid.z >= POINT_PER_AXIS) {
+        return;
+    }
+
+	isoValues.Append(snoise(tid));
+}

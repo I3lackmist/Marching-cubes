@@ -1,8 +1,7 @@
-#include "./Helpers/TriangulationHelper.hlsl"
-
 #pragma kernel MarchingCubes
 
-static const uint NUM_THREADS = 8;
+#include "./Helpers/TriangulationHelper.hlsl"
+#include "./Helpers/ComputeConstants.hlsl"
 
 struct ResultTriangle {
     float3 vertexA;
@@ -11,14 +10,16 @@ struct ResultTriangle {
 };
 
 AppendStructuredBuffer<ResultTriangle> resultTriangles;
+StructuredBuffer<int> isoValues;
 
 float distanceBetweenPoints;
 float3 chunkOrigin;
 int3 chunkIndex;
+int isoLevel;
 
 [numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
 void MarchingCubes (uint3 tid : SV_GroupThreadID) {
-    if (tid.x >= NUM_THREADS || tid.y >= NUM_THREADS || tid.z >= NUM_THREADS) { return; }
+    if (tid.x >= NUM_THREADS || tid.y >= NUM_THREADS || tid.z >= NUM_THREADS) return;
 
     float middleOffset = NUM_THREADS * -0.25 * distanceBetweenPoints;
 
@@ -33,37 +34,27 @@ void MarchingCubes (uint3 tid : SV_GroupThreadID) {
         {(tid.x)     * distanceBetweenPoints + middleOffset, (tid.y + 1) * distanceBetweenPoints + middleOffset, (tid.z + 1) * distanceBetweenPoints + middleOffset}
     };
 
-    uint values[] = {
-        ((tid.x)   > 0) * ((tid.x)   < 4) * ((tid.y) > 0)   * ((tid.y)  < 4)  * ((tid.z)   > 0) * (tid.z   < 4),
-        ((tid.x+1) > 0) * ((tid.x+1) < 4) * ((tid.y) > 0)   * ((tid.y)  < 4)  * ((tid.z)   > 0) * (tid.z   < 4),
-        ((tid.x+1) > 0) * ((tid.x+1) < 4) * ((tid.y) > 0)   * ((tid.y)  < 4)  * ((tid.z+1) > 0) * (tid.z+1 < 4),
-        ((tid.x)   > 0) * ((tid.x)   < 4) * ((tid.y) > 0)   * ((tid.y)  < 4)  * ((tid.z+1) > 0) * (tid.z+1 < 4),
-        ((tid.x)   > 0) * ((tid.x)   < 4) * ((tid.y+1) > 0) * ((tid.y+1) < 4) * ((tid.z)   > 0) * (tid.z   < 4),
-        ((tid.x+1) > 0) * ((tid.x+1) < 4) * ((tid.y+1) > 0) * ((tid.y+1) < 4) * ((tid.z)   > 0) * (tid.z   < 4),
-        ((tid.x+1) > 0) * ((tid.x+1) < 4) * ((tid.y+1) > 0) * ((tid.y+1) < 4) * ((tid.z+1) > 0) * (tid.z+1 < 4),
-        ((tid.x)   > 0) * ((tid.x)   < 4) * ((tid.y+1) > 0) * ((tid.y+1) < 4) * ((tid.z+1) > 0) * (tid.z+1 < 4)
-    };
-
     uint index = 0;
 
     for (uint i = 0; i < 8; i++) {
-        index += pow(2,i) * values[i];
+        index += pow(2,i) * (isoValues[tid.x * 64 + tid.y * 8 + tid.z] > isoLevel);
     }
 
     uint midpointVertexCount = 0;
-    while (triTable[index][midpointVertexCount] != -1) {
+    while (TRI_TABLE[index][midpointVertexCount] != -1) {
         midpointVertexCount++;
     }
 
     for (uint j = 0; j < midpointVertexCount/3; j++) {
         ResultTriangle resultTriangle;
+
         float3 midpointA;
         float3 midpointB;
         float3 midpointC;
 
-        resultTriangle.vertexA = (cubePositions[midpointPairs[triTable[index][j * 3]].x]     + cubePositions[midpointPairs[triTable[index][j * 3]].y])     / 2;
-        resultTriangle.vertexB = (cubePositions[midpointPairs[triTable[index][j * 3 + 1]].x] + cubePositions[midpointPairs[triTable[index][j * 3 + 1]].y]) / 2;
-        resultTriangle.vertexC = (cubePositions[midpointPairs[triTable[index][j * 3 + 2]].x] + cubePositions[midpointPairs[triTable[index][j * 3 + 2]].y]) / 2;
+        resultTriangle.vertexA = (cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].x]     + cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].y])     / 2;
+        resultTriangle.vertexB = (cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].x] + cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].y]) / 2;
+        resultTriangle.vertexC = (cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].x] + cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].y]) / 2;
 
         resultTriangles.Append(resultTriangle);
     }
