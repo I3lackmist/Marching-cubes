@@ -11,6 +11,9 @@ public class Chunk: MonoBehaviour {
 	[HideInInspector]
 	public VolumeProperties volumeProperties;
 
+	[SerializeField]
+	public float[] isoLevels;
+
 	public void DestroyOrDisable() {
         if (Application.isPlaying) {
             ClearMesh();

@@ -1,6 +1,7 @@
 #pragma kernel Density
 
 #include "./Helpers/ComputeConstants.hlsl"
+#include "./FastNoise/FastNoise.hlsl"
 #include "./Helpers/Noise.compute"
 
 RWStructuredBuffer<float> isoValues;
@@ -12,5 +13,8 @@ void Density (int3 tid: SV_DispatchThreadID)
         return;
     }
 
-	isoValues.Append(snoise(tid));
+	fnl_state noise = fnlCreateState();
+	noise.noise_type = FNL_NOISE_OPENSIMPLEX2;
+
+	isoValues[tid.x * 64 + tid.y * 8 + tid.z] = fnlGetNoise3D(noise, tid.x, tid.y, tid.z) * 10 + 10;
 }
