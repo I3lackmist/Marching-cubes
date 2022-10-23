@@ -9,14 +9,9 @@ public class NoiseMap : MonoBehaviour {
 	[SerializeField]
 	Texture2D texture;
 
-
 	void OnEnable() {
 		texture = new Texture2D(noiseMapProperties.width, noiseMapProperties.height, TextureFormat.RGB24, false);
 		gameObject.GetComponent<Renderer>().sharedMaterial.mainTexture = texture;
-	}
-
-	void Update() {
-		Draw();
 	}
 
 	public void Reset() {

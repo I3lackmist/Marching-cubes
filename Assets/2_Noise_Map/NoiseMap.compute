@@ -2,8 +2,6 @@
 
 #pragma kernel NoiseMap
 
-// RWBuffer<float> noiseData;
-
 RWTexture2D<float4> renderTexture;
 
 int height;
@@ -23,8 +21,6 @@ void NoiseMap (int3 gtid : SV_GROUPTHREADID, int3 gid : SV_GROUPID, int3 tid : S
 	fnl_state noise = fnlCreateState(seed);
 
 	noise.noise_type = FNL_NOISE_OPENSIMPLEX2;
-
-	// int idx = gid.y * 8*width + gtid.y * width + gid.x * 8 + gtid.x;
 
 	float noiseVal = 0;
 
@@ -46,8 +42,6 @@ void NoiseMap (int3 gtid : SV_GROUPTHREADID, int3 gid : SV_GROUPID, int3 tid : S
 	}
 
 	noiseVal = noiseVal / octaves;
-
-	// noiseData[idx] = noiseVal;
 
 	renderTexture[tid.xy] = float4(noiseVal, noiseVal, noiseVal, 0);
 }
