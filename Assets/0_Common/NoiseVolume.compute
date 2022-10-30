@@ -1,0 +1,52 @@
+#include "./FastNoise.hlsl"
+#include "./Constants.hlsl"
+
+#pragma kernel NoiseMap
+
+RWStructuredBuffer<float> noiseValues;
+
+float size;
+
+int3 chunkIndex;
+
+int octaves;
+float maxValue;
+float scale;
+float lacunarity;
+float persistence;
+
+int seed;
+
+[numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
+void NoiseMap (int3 gtid : SV_GROUPTHREADID, int3 gid : SV_GROUPID, int3 tid : SV_DISPATCHTHREADID)
+{
+	fnl_state noise = fnlCreateState(seed);
+
+	noise.noise_type = FNL_NOISE_OPENSIMPLEX2;
+
+	float noiseVal = 0;
+
+	float frequency = 1;
+	float amplitude = 1;
+
+	float offsetX = (float)chunkIndex.x * size;
+	float offsetY = (float)chunkIndex.y * size;
+	float offsetZ = (float)chunkIndex.z * size;
+
+	for (int i = 0; i < octaves; i++) {
+		float sampleX = ((float)tid.x + offsetX) / scale * frequency;
+		float sampleY = ((float)tid.y + offsetY) / scale * frequency;
+		float sampleY = ((float)tid.z + offsetZ) / scale * frequency;
+
+		noiseVal = noiseVal + ((fnlGetNoise3D(noise, sampleX, sampleY, sampleZ) + 1) * 0.5) * amplitude;
+
+		frequency = frequency * lacunarity;
+		amplitude = amplitude * persistence;
+	}
+
+	if (noiseVal > octaves) {
+		noiseVal = octaves;
+	}
+
+	noiseVal = noiseVal / maxValue;
+}
