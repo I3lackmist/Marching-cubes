@@ -16,10 +16,19 @@ public class ChunkType {
 	[SerializeField]
 	public float scale;
 
-	public void SetShaderFields(ComputeShader shader) {
-		shader.SetInt("octaves", octaves);
-		shader.SetFloat("scale", scale);
-		shader.SetFloat("lacunarity", lacunarity);
-		shader.SetFloat("persistence", persistence);
+	[SerializeField]
+	public float maxValue;
+
+	[SerializeField]
+	public float isoLevel;
+
+	public void SetShaderFields(ComputeShader noiseShader, ComputeShader cubeShader) {
+		noiseShader.SetInt("octaves", octaves);
+		noiseShader.SetFloat("scale", scale);
+		noiseShader.SetFloat("lacunarity", lacunarity);
+		noiseShader.SetFloat("persistence", persistence);
+		noiseShader.SetFloat("maxValue", maxValue);
+
+		cubeShader.SetFloat("isoLevel", isoLevel);
 	}
 }

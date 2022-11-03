@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,16 +7,18 @@ using UnityEngine;
 public class RenderQueue : MonoBehaviour
 {
 	[SerializeField]
-	public int renderPerCycle;
-
+	public QueueProperties properties;
 	public Action DoneFunction;
 
-	public int renderingCount = 0;
-
-	public List<IRenderable> renderQueue;
+	private int renderingCount = 0;
+	private List<IRenderable> renderQueue;
 
 	public void Enqueue(IRenderable renderable) {
 		renderQueue.Add(renderable);
+	}
+
+	public void Unqueue(IRenderable renderable) {
+		renderQueue.Remove(renderable);
 	}
 
 	private void DoneRendering() {
@@ -27,15 +30,29 @@ public class RenderQueue : MonoBehaviour
 		DoneFunction = new Action(DoneRendering);
 	}
 
-	private void FixedUpdate() {
-		if (renderQueue.Any()) {
-			renderQueue.Take(renderPerCycle - renderingCount).Select( renderable => {
-				renderable.Render(DoneFunction);
-				renderingCount++;
-				renderQueue.RemoveAt(0);
+	private void Start() {
+		if (!properties.processInUpdate) StartCoroutine(Cycle());
+	}
 
-				return renderable;
-			});
+	private void Update() {
+		if (properties.processInUpdate) CycleAction();
+	}
+
+	private IEnumerator Cycle() {
+		while (true) {
+			CycleAction();
+
+			yield return new WaitForSeconds(properties.cycleLength);
 		}
+	}
+
+	private void CycleAction() {
+		for (int i = 0; i < properties.processPerCycle - renderingCount; i++) {
+				if (!renderQueue.Any()) break;
+
+				renderQueue[0].Render(DoneFunction);
+				renderQueue.RemoveAt(0);
+				renderingCount++;
+			}
 	}
 }

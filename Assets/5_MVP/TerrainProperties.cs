@@ -10,4 +10,10 @@ public class TerrainProperties
 
 	[SerializeField]
 	public List<ChunkType> chunkTypes;
+
+	[SerializeField]
+	public int chunkLimit;
+
+	[SerializeField]
+	public int brushSize;
 }

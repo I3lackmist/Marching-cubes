@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections;
 using UnityEngine;
 
 public class Terrain : MonoBehaviour
@@ -8,7 +9,13 @@ public class Terrain : MonoBehaviour
 	public TerrainProperties properties;
 
 	[SerializeField]
+	public QueueProperties queueProperties;
+
+	[SerializeField]
 	public SharedChunkProperties sharedChunkProperties;
+
+	[SerializeField]
+	public DisposeQueue disposeQueue;
 
 	[SerializeField]
 	public RenderQueue renderQueue;
@@ -18,33 +25,76 @@ public class Terrain : MonoBehaviour
 
 	private TerrainBrush brush;
 
+	private List<Vector3Int> brushPoints;
+
 	private void OnEnable() {
 		sharedChunkProperties.player = Camera.main.transform;
 
 		chunks = new Dictionary<Vector3Int, Chunk>();
+		brush = new TerrainBrush();
+
+		brush.Size = properties.brushSize;
+		brush.Is3D = true;
+		brushPoints = brush.Brush;
 	}
 
-	private void Start() {
-		if (brush == null) {
-			brush = new TerrainBrush();
+	public IEnumerator Cycle() {
+		while(true) {
+			CycleAction();
 
-			brush.Size = 3;
-			brush.Is3D = true;
+			yield return new WaitForSeconds(queueProperties.cycleLength);
 		}
 	}
 
-	private void Update() {
-		var points = GetNewPointsAroundPlayer();
+	public void CycleAction() {
+		if (chunks.Count > properties.chunkLimit) return;
 
+		MakeChunks(
+			GetNewPointsAroundPlayer()
+				.Take(queueProperties.processPerCycle)
+		);
+	}
+
+	public Vector3Int ChunkIndexFromPosition(Vector3 position) {
+		return new Vector3Int(
+			Mathf.FloorToInt(position.x / sharedChunkProperties.worldSize),
+			Mathf.FloorToInt(position.y / sharedChunkProperties.worldSize),
+			Mathf.FloorToInt(position.z / sharedChunkProperties.worldSize)
+		);
+	}
+
+	private void Start() {
+		if (!queueProperties.processInUpdate) StartCoroutine(Cycle());
+	}
+
+	private void Update() {
+		if (queueProperties.processInUpdate) CycleAction();
+	}
+
+	private List<Vector3Int> GetNewPointsAroundPlayer() {
+		return brushPoints
+			.Select(point =>
+				new Vector3Int(point.x, point.y, point.z) + ChunkIndexFromPosition(sharedChunkProperties.player.position)
+			)
+			.Except(chunks.Keys)
+			.ToList();
+	}
+
+	private void MakeChunks(IEnumerable<Vector3Int> points) {
 		foreach (var point in points) {
+			Vector3 chunkPosition =
+				new Vector3(point.x, point.y, point.z) * sharedChunkProperties.worldSize;
+
 			Chunk chunk = Instantiate(
 				properties.chunkPrefab,
-				point,
+				chunkPosition,
 				Quaternion.identity
 			).GetComponent<Chunk>();
 
 			chunks.Add(point, chunk);
 
+			chunk.parent = this;
+			chunk.sharedProperties = sharedChunkProperties;
 			chunk.properties.chunkIndex = point;
 			chunk.properties.chunkType = properties.chunkTypes[0];
 
@@ -52,20 +102,14 @@ public class Terrain : MonoBehaviour
 		}
 	}
 
-	public Vector3Int ChunkIndexFromPosition(Vector3 position) {
-		return new Vector3Int(
-			Mathf.FloorToInt(position.x/sharedChunkProperties.worldSize),
-			Mathf.FloorToInt(position.y/sharedChunkProperties.worldSize),
-			Mathf.FloorToInt(position.z/sharedChunkProperties.worldSize)
-		);
+	public void EnqueueDispose(Vector3Int chunkIndex) {
+		disposeQueue.Enqueue(chunks[chunkIndex]);
 	}
 
-	private List<Vector3Int> GetNewPointsAroundPlayer() {
-		return brush.Brush
-			.Select(point =>
-				new Vector3Int(point.x, point.y, point.z) + ChunkIndexFromPosition(Vector3.zero)
-			)
-			.Except(chunks.Keys)
-			.ToList();
+	public void DeleteChunk(Vector3Int chunkIndex) {
+		Chunk chunk = chunks[chunkIndex];
+		chunks.Remove(chunkIndex);
+		disposeQueue.Unqueue(chunk);
+		chunk.Destroy();
 	}
 }

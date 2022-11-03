@@ -6,16 +6,10 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 {
 	public Terrain parent;
 	public Mesh mesh;
-	public MeshFilter meshFilter;
 	public SharedChunkProperties sharedProperties;
 	public ChunkProperties properties;
-	private IEnumerator checkDistanceCoroutine;
-	private ComputeBuffer noiseBuffer;
 
-	private void OnEnable() {
-		meshFilter = gameObject.GetComponent<MeshFilter>();
-		mesh = new Mesh();
-	}
+	private MeshFilter meshFilter;
 
 	public void SetOwnMesh() {
 		meshFilter.sharedMesh = mesh;
@@ -23,30 +17,18 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 
 	public void Render(Action doneFunction) {
 		SetShaderValues();
+		DispatchShaders();
+		SetOwnMesh();
 
 		doneFunction();
 
-		checkDistanceCoroutine = checkDistance();
-		StartCoroutine(checkDistanceCoroutine);
+		parent.EnqueueDispose(properties.chunkIndex);
 	}
 
-	public IEnumerator checkDistance() {
-		while (true) {
-			if (Vector3.Distance(
-					sharedProperties.player.position,
-					transform.position
-				) > sharedProperties.maxDistanceFromChunk) {
-				this.Dispose();
-			}
-
-			yield return new WaitForSecondsRealtime(0.5f);
-		}
-	}
-
-	public void SetShaderValues() {
-		properties.chunkType.SetShaderFields(sharedProperties.densityShader);
-
+	private void SetShaderValues() {
 		sharedProperties.densityShader.SetInt("seed", sharedProperties.seed);
+
+		properties.chunkType.SetShaderFields(sharedProperties.densityShader, sharedProperties.marchingCubesShader);
 
 		sharedProperties.densityShader.SetInts(
 			"chunkIndex",
@@ -54,29 +36,70 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 			properties.chunkIndex.y,
 			properties.chunkIndex.z
 		);
+
+		sharedProperties.marchingCubesShader.SetInts(
+			"chunkIndex",
+			properties.chunkIndex.x,
+			properties.chunkIndex.y,
+			properties.chunkIndex.z
+		);
+
+		sharedProperties.marchingCubesShader.SetFloat("distanceBetweenPoints", transform.localScale.x/8);
+
+		sharedProperties.marchingCubesShader.SetFloats(
+			"chunkOrigin",
+			transform.position.x,
+			transform.position.y,
+			transform.position.z
+		);
 	}
 
-	public void MakeMesh() {
-		noiseBuffer = new ComputeBuffer(
-			(int)Math.Pow(sharedProperties.size, 3),
+	private void DispatchShaders() {
+		int elemNum = (int)Math.Pow(sharedProperties.size, 3);
+		ComputeBuffer noiseBuffer = new ComputeBuffer(
+			elemNum,
 			sizeof(float)
+		);
+
+		ComputeBuffer triBuffer = new ComputeBuffer(
+			elemNum,
+			sizeof(float) * 9
 		);
 
 		sharedProperties.densityShader.SetBuffer(0, "noiseValues", noiseBuffer);
 
 		sharedProperties.densityShader.Dispatch(0, 1, 1, 1);
+
+		sharedProperties.marchingCubesShader.SetBuffer(0, "noiseValues", noiseBuffer);
+
+		sharedProperties.marchingCubesShader.Dispatch(0, 1, 1, 1);
+
+
 	}
 
 	public void Dispose() {
-		if (mesh != null) {
-			if (Application.isPlaying) {
-				Destroy(meshFilter.sharedMesh);
-				Destroy(mesh);
+		float distanceFromPlayer = Vector3.Distance(transform.position, sharedProperties.player.position);
+
+		if (distanceFromPlayer > sharedProperties.maxDistanceFromChunk) {
+			if (mesh != null) {
+				if (Application.isPlaying) {
+					Destroy(mesh);
+				}
+				else {
+					DestroyImmediate(mesh);
+				}
 			}
-			else {
-				DestroyImmediate(meshFilter.sharedMesh);
-				DestroyImmediate(mesh);
-			}
+
+			parent.DeleteChunk(properties.chunkIndex);
 		}
+	}
+
+	public void Destroy() {
+		Destroy(gameObject);
+	}
+
+	private void OnEnable() {
+		meshFilter = gameObject.GetComponent<MeshFilter>();
+		mesh = new Mesh();
 	}
 }

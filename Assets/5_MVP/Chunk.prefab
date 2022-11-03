@@ -28,11 +28,11 @@ Transform:
   m_GameObject: {fileID: 8195854062978112890}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 7.4196167, y: 7.330021, z: 3.1301942}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8195854062978112891
 MonoBehaviour:
@@ -60,7 +60,6 @@ MonoBehaviour:
   properties:
     chunkIndex: {x: 0, y: 0, z: 0}
     chunkType:
-      size: 0
       lacunarity: 0
       persistence: 0
       octaves: 0

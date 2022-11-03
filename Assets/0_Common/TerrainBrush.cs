@@ -14,6 +14,7 @@ public class TerrainBrush
 			MakeBrushArea();
 		}
 	}
+
 	public int Size {
 		get {
 			return _size;

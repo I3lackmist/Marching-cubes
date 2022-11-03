@@ -44,9 +44,11 @@ void NoiseMap (int3 gtid : SV_GROUPTHREADID, int3 gid : SV_GROUPID, int3 tid : S
 		amplitude = amplitude * persistence;
 	}
 
-	if (noiseVal > octaves) {
-		noiseVal = octaves;
+	if (noiseVal > maxValue) {
+		noiseVal = maxValue;
 	}
 
 	noiseVal = noiseVal / maxValue;
+
+	noiseValues[tid.x + tid.y * NUM_THREADS + tid.z * NUM_THREADS * NUM_THREADS] = noiseVal;
 }
