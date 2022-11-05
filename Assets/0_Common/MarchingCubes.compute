@@ -1,7 +1,6 @@
-#pragma kernel MarchingCubes
-
-#include "./Constants.hlsl"
 #include "./TriangulationHelper.hlsl"
+
+#pragma kernel MarchingCubes
 
 struct ResultTriangle {
     float3 vertexA;
@@ -10,40 +9,51 @@ struct ResultTriangle {
 };
 
 AppendStructuredBuffer<ResultTriangle> resultTriangles;
-StructuredBuffer<int> isoValues;
+RWStructuredBuffer<float> noiseValues;
 
 float distanceBetweenPoints;
-float3 chunkOrigin;
-int3 chunkIndex;
-int isoLevel;
+float isoLevel;
 
-[numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
-void MarchingCubes (int3 tid : SV_GroupThreadID) {
-    if (tid.x >= NUM_THREADS || tid.y >= NUM_THREADS || tid.z >= NUM_THREADS) return;
+[numthreads(8, 8, 8)]
+void MarchingCubes (int3 gtid : SV_GroupThreadID) {
+	if (gtid.x == 8 || gtid.y == 8 || gtid.z == 8) return;
 
-    float middleOffset = NUM_THREADS * -0.25 * distanceBetweenPoints;
+    float middleOffset = 8 * -0.25 * distanceBetweenPoints;
 
-	float3 cubePositions[] = {
-        {(tid.x)     * distanceBetweenPoints + middleOffset, (tid.y)     * distanceBetweenPoints + middleOffset, (tid.z)     * distanceBetweenPoints + middleOffset},
-        {(tid.x + 1) * distanceBetweenPoints + middleOffset, (tid.y)     * distanceBetweenPoints + middleOffset, (tid.z)     * distanceBetweenPoints + middleOffset},
-        {(tid.x + 1) * distanceBetweenPoints + middleOffset, (tid.y)     * distanceBetweenPoints + middleOffset, (tid.z + 1) * distanceBetweenPoints + middleOffset},
-        {(tid.x)     * distanceBetweenPoints + middleOffset, (tid.y)     * distanceBetweenPoints + middleOffset, (tid.z + 1) * distanceBetweenPoints + middleOffset},
-        {(tid.x)     * distanceBetweenPoints + middleOffset, (tid.y + 1) * distanceBetweenPoints + middleOffset, (tid.z)     * distanceBetweenPoints + middleOffset},
-        {(tid.x + 1) * distanceBetweenPoints + middleOffset, (tid.y + 1) * distanceBetweenPoints + middleOffset, (tid.z)     * distanceBetweenPoints + middleOffset},
-        {(tid.x + 1) * distanceBetweenPoints + middleOffset, (tid.y + 1) * distanceBetweenPoints + middleOffset, (tid.z + 1) * distanceBetweenPoints + middleOffset},
-        {(tid.x)     * distanceBetweenPoints + middleOffset, (tid.y + 1) * distanceBetweenPoints + middleOffset, (tid.z + 1) * distanceBetweenPoints + middleOffset}
+	float3 cornerPositions[] = {
+        {(gtid.x)     * distanceBetweenPoints + middleOffset, (gtid.y)     * distanceBetweenPoints + middleOffset, (gtid.z)     * distanceBetweenPoints + middleOffset},
+        {(gtid.x + 1) * distanceBetweenPoints + middleOffset, (gtid.y)     * distanceBetweenPoints + middleOffset, (gtid.z)     * distanceBetweenPoints + middleOffset},
+        {(gtid.x + 1) * distanceBetweenPoints + middleOffset, (gtid.y)     * distanceBetweenPoints + middleOffset, (gtid.z + 1) * distanceBetweenPoints + middleOffset},
+        {(gtid.x)     * distanceBetweenPoints + middleOffset, (gtid.y)     * distanceBetweenPoints + middleOffset, (gtid.z + 1) * distanceBetweenPoints + middleOffset},
+        {(gtid.x)     * distanceBetweenPoints + middleOffset, (gtid.y + 1) * distanceBetweenPoints + middleOffset, (gtid.z)     * distanceBetweenPoints + middleOffset},
+        {(gtid.x + 1) * distanceBetweenPoints + middleOffset, (gtid.y + 1) * distanceBetweenPoints + middleOffset, (gtid.z)     * distanceBetweenPoints + middleOffset},
+        {(gtid.x + 1) * distanceBetweenPoints + middleOffset, (gtid.y + 1) * distanceBetweenPoints + middleOffset, (gtid.z + 1) * distanceBetweenPoints + middleOffset},
+        {(gtid.x)     * distanceBetweenPoints + middleOffset, (gtid.y + 1) * distanceBetweenPoints + middleOffset, (gtid.z + 1) * distanceBetweenPoints + middleOffset}
     };
 
-    uint index = 0;
+	float cornerValues[] = {
+		noiseValues[(gtid.x)     + (gtid.y)     * 8 + (gtid.z)     * 64],
+		noiseValues[(gtid.x + 1) + (gtid.y)     * 8 + (gtid.z)     * 64],
+		noiseValues[(gtid.x + 1) + (gtid.y)     * 8 + (gtid.z + 1) * 64],
+		noiseValues[(gtid.x)     + (gtid.y)     * 8 + (gtid.z + 1) * 64],
+		noiseValues[(gtid.x)     + (gtid.y + 1) * 8 + (gtid.z)     * 64],
+		noiseValues[(gtid.x + 1) + (gtid.y + 1) * 8 + (gtid.z)     * 64],
+		noiseValues[(gtid.x + 1) + (gtid.y + 1) * 8 + (gtid.z + 1) * 64],
+		noiseValues[(gtid.x)     + (gtid.y + 1) * 8 + (gtid.z + 1) * 64]
+	};
 
+    int index = 0;
     for (int i = 0; i < 8; i++) {
-        index += pow(2,i) * (isoValues[tid.x * 64 + tid.y * 8 + tid.z] > isoLevel);
+		if (cornerValues[i] > isoLevel) index += pow(2, i);
     }
 
-    uint midpointVertexCount = 0;
+    int midpointVertexCount = 0;
+
     while (TRI_TABLE[index][midpointVertexCount] != -1) {
         midpointVertexCount++;
     }
+
+	int triCount = 0;
 
     for (int j = 0; j < midpointVertexCount/3; j++) {
         ResultTriangle resultTriangle;
@@ -52,9 +62,9 @@ void MarchingCubes (int3 tid : SV_GroupThreadID) {
         float3 midpointB;
         float3 midpointC;
 
-        resultTriangle.vertexA = (cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].x]     + cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].y])     / 2;
-        resultTriangle.vertexB = (cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].x] + cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].y]) / 2;
-        resultTriangle.vertexC = (cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].x] + cubePositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].y]) / 2;
+        resultTriangle.vertexA = (cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].x]     + cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].y])     / 2;
+        resultTriangle.vertexB = (cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].x] + cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].y]) / 2;
+        resultTriangle.vertexC = (cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].x] + cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].y]) / 2;
 
         resultTriangles.Append(resultTriangle);
     }

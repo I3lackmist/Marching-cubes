@@ -173,17 +173,17 @@ MonoBehaviour:
     - lacunarity: 2
       persistence: 0.5
       octaves: 2
-      scale: 1
-      maxValue: 0
+      scale: 0.1
+      maxValue: 3
       isoLevel: 0
     chunkLimit: 1
     brushSize: 2
   queueProperties:
-    processPerCycle: 10
+    processPerCycle: 1
     cycleLength: 0.1
     processInUpdate: 0
   sharedChunkProperties:
-    seed: 0
+    seed: 1
     size: 8
     worldSize: 5
     maxDistanceFromChunk: 50

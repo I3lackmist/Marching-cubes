@@ -47,7 +47,7 @@ public class Terrain : MonoBehaviour
 	}
 
 	public void CycleAction() {
-		if (chunks.Count > properties.chunkLimit) return;
+		if (chunks.Count >= properties.chunkLimit) return;
 
 		MakeChunks(
 			GetNewPointsAroundPlayer()

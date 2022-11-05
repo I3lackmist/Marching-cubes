@@ -1,5 +1,4 @@
 #include "./FastNoise.hlsl"
-#include "./Constants.hlsl"
 
 #pragma kernel NoiseMap
 
@@ -17,8 +16,8 @@ float persistence;
 
 int seed;
 
-[numthreads(NUM_THREADS, NUM_THREADS, NUM_THREADS)]
-void NoiseMap (int3 gtid : SV_GROUPTHREADID, int3 gid : SV_GROUPID, int3 tid : SV_DISPATCHTHREADID)
+[numthreads(8, 8, 8)]
+void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
 {
 	fnl_state noise = fnlCreateState(seed);
 
@@ -29,14 +28,18 @@ void NoiseMap (int3 gtid : SV_GROUPTHREADID, int3 gid : SV_GROUPID, int3 tid : S
 	float frequency = 1;
 	float amplitude = 1;
 
-	float offsetX = (float)chunkIndex.x * size;
-	float offsetY = (float)chunkIndex.y * size;
-	float offsetZ = (float)chunkIndex.z * size;
+	float posX = (float)tid.x + (float)chunkIndex.x * size;
+	float posY = (float)tid.y + (float)chunkIndex.y * size;
+	float posZ = (float)tid.z + (float)chunkIndex.z * size;
+
+	float sampleX;
+	float sampleY;
+	float sampleZ;
 
 	for (int i = 0; i < octaves; i++) {
-		float sampleX = ((float)tid.x + offsetX) / scale * frequency;
-		float sampleY = ((float)tid.y + offsetY) / scale * frequency;
-		float sampleY = ((float)tid.z + offsetZ) / scale * frequency;
+		sampleX = posX / scale * frequency;
+		sampleY = posY / scale * frequency;
+		sampleZ = posZ / scale * frequency;
 
 		noiseVal = noiseVal + ((fnlGetNoise3D(noise, sampleX, sampleY, sampleZ) + 1) * 0.5) * amplitude;
 
@@ -50,5 +53,5 @@ void NoiseMap (int3 gtid : SV_GROUPTHREADID, int3 gid : SV_GROUPID, int3 tid : S
 
 	noiseVal = noiseVal / maxValue;
 
-	noiseValues[tid.x + tid.y * NUM_THREADS + tid.z * NUM_THREADS * NUM_THREADS] = noiseVal;
+	noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseVal;
 }

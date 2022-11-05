@@ -1,24 +1,46 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Chunk : MonoBehaviour, IRenderable, IDisposable
 {
 	public Terrain parent;
-	public Mesh mesh;
+	private Mesh mesh;
 	public SharedChunkProperties sharedProperties;
 	public ChunkProperties properties;
 
 	private MeshFilter meshFilter;
 
-	public void SetOwnMesh() {
+	public void MakeMesh(ResultTriangle[] resultTris) {
+		mesh = new Mesh();
+
+		List<Vector3> verts = new List<Vector3>();
+        List<int> tris = new List<int>();
+
+        int vertIndex = 0;
+
+        foreach(ResultTriangle triangle in resultTris) {
+            verts.Add(triangle.vertexA);
+            verts.Add(triangle.vertexB);
+            verts.Add(triangle.vertexC);
+
+            tris.Add(vertIndex++);
+            tris.Add(vertIndex++);
+            tris.Add(vertIndex++);
+        }
+
+        mesh.vertices = verts.ToArray();
+        mesh.triangles = tris.ToArray();
+
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+
 		meshFilter.sharedMesh = mesh;
 	}
 
 	public void Render(Action doneFunction) {
 		SetShaderValues();
 		DispatchShaders();
-		SetOwnMesh();
 
 		doneFunction();
 
@@ -32,49 +54,55 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 
 		sharedProperties.densityShader.SetInts(
 			"chunkIndex",
-			properties.chunkIndex.x,
-			properties.chunkIndex.y,
-			properties.chunkIndex.z
+			new int[] {
+				properties.chunkIndex.x,
+				properties.chunkIndex.y,
+				properties.chunkIndex.z
+			}
 		);
 
-		sharedProperties.marchingCubesShader.SetInts(
-			"chunkIndex",
-			properties.chunkIndex.x,
-			properties.chunkIndex.y,
-			properties.chunkIndex.z
-		);
-
-		sharedProperties.marchingCubesShader.SetFloat("distanceBetweenPoints", transform.localScale.x/8);
-
-		sharedProperties.marchingCubesShader.SetFloats(
-			"chunkOrigin",
-			transform.position.x,
-			transform.position.y,
-			transform.position.z
-		);
+		sharedProperties.marchingCubesShader.SetFloat("distanceBetweenPoints", transform.lossyScale.x/8);
 	}
 
 	private void DispatchShaders() {
-		int elemNum = (int)Math.Pow(sharedProperties.size, 3);
 		ComputeBuffer noiseBuffer = new ComputeBuffer(
-			elemNum,
+			512,
 			sizeof(float)
 		);
 
 		ComputeBuffer triBuffer = new ComputeBuffer(
-			elemNum,
-			sizeof(float) * 9
+			2048,
+			sizeof(float)*9*2,
+			ComputeBufferType.Append
 		);
 
-		sharedProperties.densityShader.SetBuffer(0, "noiseValues", noiseBuffer);
+		ComputeBuffer triCountBuffer = new ComputeBuffer (1, sizeof (int), ComputeBufferType.Raw);
 
+		sharedProperties.densityShader.SetBuffer(0, "noiseValues", noiseBuffer);
 		sharedProperties.densityShader.Dispatch(0, 1, 1, 1);
+		float[] noiseValues = new float[512];
+
+		noiseBuffer.GetData(noiseValues);
 
 		sharedProperties.marchingCubesShader.SetBuffer(0, "noiseValues", noiseBuffer);
-
+		sharedProperties.marchingCubesShader.SetBuffer(0, "resultTriangles", triBuffer);
 		sharedProperties.marchingCubesShader.Dispatch(0, 1, 1, 1);
 
+		ComputeBuffer.CopyCount(triBuffer, triCountBuffer, 0);
 
+		int[] triCountArray = { 0 };
+        triCountBuffer.GetData(triCountArray);
+        int numTris = triCountArray[0];
+		triCountBuffer.Release();
+		Debug.Log(numTris);
+
+		ResultTriangle[] resultTriangles = new ResultTriangle[numTris];
+		triBuffer.GetData(resultTriangles);
+
+		noiseBuffer.Release();
+		triBuffer.Release();
+
+		MakeMesh(resultTriangles);
 	}
 
 	public void Dispose() {
@@ -100,6 +128,5 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 
 	private void OnEnable() {
 		meshFilter = gameObject.GetComponent<MeshFilter>();
-		mesh = new Mesh();
 	}
 }
