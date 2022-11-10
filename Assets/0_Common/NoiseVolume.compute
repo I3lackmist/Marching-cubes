@@ -6,13 +6,18 @@ RWStructuredBuffer<float> noiseValues;
 
 float size;
 
-int3 chunkIndex;
+float X;
+float Y;
+float Z;
 
 int octaves;
 float maxValue;
 float scale;
 float lacunarity;
 float persistence;
+float floorLevel = 0.0;
+float cutoffLevel = 2.0;
+float heightWeight = 0.25;
 
 int seed;
 
@@ -28,9 +33,9 @@ void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
 	float frequency = 1;
 	float amplitude = 1;
 
-	float posX = (float)tid.x + (float)chunkIndex.x * size;
-	float posY = (float)tid.y + (float)chunkIndex.y * size;
-	float posZ = (float)tid.z + (float)chunkIndex.z * size;
+	float posX = (float)tid.x + X * (size-1);
+	float posY = (float)tid.y + Y * (size-1);
+	float posZ = (float)tid.z + Z * (size-1);
 
 	float sampleX;
 	float sampleY;
@@ -50,6 +55,26 @@ void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
 	if (noiseVal > maxValue) {
 		noiseVal = maxValue;
 	}
+
+	if (Y == floorLevel && tid.y == 0) {
+		noiseVal = 0;
+	}
+
+	// if (posY > floorLevel) {
+	// 	float reduceValueStrength = (posY - floorLevel) * heightWeight;
+
+	// 	if (reduceValueStrength > 1.0)  {
+	// 		reduceValueStrength = 1.0;
+	// 	}
+
+	// 	float reduceValuePercent = 1.0 - reduceValueStrength;
+
+	// 	noiseVal = noiseVal * reduceValuePercent;
+
+	// 	if (Y > cutoffLevel) {
+	// 		noiseVal = 0;
+	// 	}
+	// }
 
 	noiseVal = noiseVal / maxValue;
 

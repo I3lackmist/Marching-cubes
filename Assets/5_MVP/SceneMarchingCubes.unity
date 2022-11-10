@@ -172,21 +172,21 @@ MonoBehaviour:
     chunkTypes:
     - lacunarity: 2
       persistence: 0.5
-      octaves: 2
-      scale: 0.1
+      octaves: 3
+      scale: 0.75
       maxValue: 3
-      isoLevel: 0
-    chunkLimit: 1
-    brushSize: 2
+      isoLevel: 0.3
+    chunkLimit: 5000
+    brushSize: 10
   queueProperties:
-    processPerCycle: 1
-    cycleLength: 0.1
+    processPerCycle: 16
+    cycleLength: 0.05
     processInUpdate: 0
   sharedChunkProperties:
-    seed: 1
+    seed: 2137
     size: 8
-    worldSize: 5
-    maxDistanceFromChunk: 50
+    worldSize: 3
+    maxDistanceFromChunk: 30
     marchingCubesShader: {fileID: 7200000, guid: 78cea64fb9a8dee4386971400132c900, type: 3}
     densityShader: {fileID: 7200000, guid: fbc4901dcdb8f4e47baa9aee3bb4e311, type: 3}
     player: {fileID: 0}
@@ -338,7 +338,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   properties:
-    processPerCycle: 8
+    processPerCycle: 16
     cycleLength: 0.1
     processInUpdate: 0
 --- !u!4 &1177577660
@@ -370,8 +370,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   properties:
     processPerCycle: 25
-    cycleLength: 0
-    processInUpdate: 1
+    cycleLength: 0.05
+    processInUpdate: 0
 --- !u!1 &1873347189
 GameObject:
   m_ObjectHideFlags: 0

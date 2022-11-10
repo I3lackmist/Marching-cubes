@@ -11,6 +11,9 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 
 	private MeshFilter meshFilter;
 
+	ComputeBuffer noiseBuffer;
+	ComputeBuffer triBuffer;
+	ComputeBuffer triCountBuffer;
 	public void MakeMesh(ResultTriangle[] resultTris) {
 		mesh = new Mesh();
 
@@ -49,34 +52,30 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 
 	private void SetShaderValues() {
 		sharedProperties.densityShader.SetInt("seed", sharedProperties.seed);
+		sharedProperties.densityShader.SetFloat("size", sharedProperties.size);
 
 		properties.chunkType.SetShaderFields(sharedProperties.densityShader, sharedProperties.marchingCubesShader);
 
-		sharedProperties.densityShader.SetInts(
-			"chunkIndex",
-			new int[] {
-				properties.chunkIndex.x,
-				properties.chunkIndex.y,
-				properties.chunkIndex.z
-			}
-		);
+		sharedProperties.densityShader.SetFloat("X", properties.chunkIndex.x);
+		sharedProperties.densityShader.SetFloat("Y", properties.chunkIndex.y);
+		sharedProperties.densityShader.SetFloat("Z", properties.chunkIndex.z);
 
-		sharedProperties.marchingCubesShader.SetFloat("distanceBetweenPoints", transform.lossyScale.x/8);
+		sharedProperties.marchingCubesShader.SetFloat("distanceBetweenPoints", sharedProperties.worldSize/7);
 	}
 
 	private void DispatchShaders() {
-		ComputeBuffer noiseBuffer = new ComputeBuffer(
+		noiseBuffer = new ComputeBuffer(
 			512,
 			sizeof(float)
 		);
 
-		ComputeBuffer triBuffer = new ComputeBuffer(
+		triBuffer = new ComputeBuffer(
 			2048,
-			sizeof(float)*9*2,
+			sizeof(float) * 9, // Bug: HLSL float 32 bits/4 bytes, yet needs 72 bytes for some reason?
 			ComputeBufferType.Append
 		);
 
-		ComputeBuffer triCountBuffer = new ComputeBuffer (1, sizeof (int), ComputeBufferType.Raw);
+		triCountBuffer = new ComputeBuffer (1, sizeof (int), ComputeBufferType.Raw);
 
 		sharedProperties.densityShader.SetBuffer(0, "noiseValues", noiseBuffer);
 		sharedProperties.densityShader.Dispatch(0, 1, 1, 1);
@@ -93,33 +92,46 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 		int[] triCountArray = { 0 };
         triCountBuffer.GetData(triCountArray);
         int numTris = triCountArray[0];
-		triCountBuffer.Release();
-		Debug.Log(numTris);
 
 		ResultTriangle[] resultTriangles = new ResultTriangle[numTris];
 		triBuffer.GetData(resultTriangles);
 
-		noiseBuffer.Release();
-		triBuffer.Release();
-
 		MakeMesh(resultTriangles);
+	}
+
+	private void ReleaseBuffers() {
+		if (noiseBuffer != null) {
+			noiseBuffer.Release();
+			triBuffer.Release();
+			triCountBuffer.Release();
+		}
 	}
 
 	public void Dispose() {
 		float distanceFromPlayer = Vector3.Distance(transform.position, sharedProperties.player.position);
 
 		if (distanceFromPlayer > sharedProperties.maxDistanceFromChunk) {
-			if (mesh != null) {
-				if (Application.isPlaying) {
-					Destroy(mesh);
-				}
-				else {
-					DestroyImmediate(mesh);
-				}
-			}
+			DisposeMesh();
+			ReleaseBuffers();
 
 			parent.DeleteChunk(properties.chunkIndex);
 		}
+	}
+
+	private void DisposeMesh() {
+		if (mesh != null) {
+			if (Application.isPlaying) {
+				Destroy(mesh);
+			}
+			else {
+				DestroyImmediate(mesh);
+			}
+		}
+	}
+
+	private void OnDestroy() {
+		DisposeMesh();
+		ReleaseBuffers();
 	}
 
 	public void Destroy() {

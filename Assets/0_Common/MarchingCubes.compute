@@ -15,20 +15,18 @@ float distanceBetweenPoints;
 float isoLevel;
 
 [numthreads(8, 8, 8)]
-void MarchingCubes (int3 gtid : SV_GroupThreadID) {
-	if (gtid.x == 8 || gtid.y == 8 || gtid.z == 8) return;
-
-    float middleOffset = 8 * -0.25 * distanceBetweenPoints;
+void MarchingCubes (int3 gtid : SV_DISPATCHTHREADID) {
+	if (gtid.x >= 7 || gtid.y >= 7 || gtid.z >= 7) return;
 
 	float3 cornerPositions[] = {
-        {(gtid.x)     * distanceBetweenPoints + middleOffset, (gtid.y)     * distanceBetweenPoints + middleOffset, (gtid.z)     * distanceBetweenPoints + middleOffset},
-        {(gtid.x + 1) * distanceBetweenPoints + middleOffset, (gtid.y)     * distanceBetweenPoints + middleOffset, (gtid.z)     * distanceBetweenPoints + middleOffset},
-        {(gtid.x + 1) * distanceBetweenPoints + middleOffset, (gtid.y)     * distanceBetweenPoints + middleOffset, (gtid.z + 1) * distanceBetweenPoints + middleOffset},
-        {(gtid.x)     * distanceBetweenPoints + middleOffset, (gtid.y)     * distanceBetweenPoints + middleOffset, (gtid.z + 1) * distanceBetweenPoints + middleOffset},
-        {(gtid.x)     * distanceBetweenPoints + middleOffset, (gtid.y + 1) * distanceBetweenPoints + middleOffset, (gtid.z)     * distanceBetweenPoints + middleOffset},
-        {(gtid.x + 1) * distanceBetweenPoints + middleOffset, (gtid.y + 1) * distanceBetweenPoints + middleOffset, (gtid.z)     * distanceBetweenPoints + middleOffset},
-        {(gtid.x + 1) * distanceBetweenPoints + middleOffset, (gtid.y + 1) * distanceBetweenPoints + middleOffset, (gtid.z + 1) * distanceBetweenPoints + middleOffset},
-        {(gtid.x)     * distanceBetweenPoints + middleOffset, (gtid.y + 1) * distanceBetweenPoints + middleOffset, (gtid.z + 1) * distanceBetweenPoints + middleOffset}
+        {(gtid.x)     * distanceBetweenPoints, (gtid.y)     * distanceBetweenPoints, (gtid.z)     * distanceBetweenPoints},
+        {(gtid.x + 1) * distanceBetweenPoints, (gtid.y)     * distanceBetweenPoints, (gtid.z)     * distanceBetweenPoints},
+        {(gtid.x + 1) * distanceBetweenPoints, (gtid.y)     * distanceBetweenPoints, (gtid.z + 1) * distanceBetweenPoints},
+        {(gtid.x)     * distanceBetweenPoints, (gtid.y)     * distanceBetweenPoints, (gtid.z + 1) * distanceBetweenPoints},
+        {(gtid.x)     * distanceBetweenPoints, (gtid.y + 1) * distanceBetweenPoints, (gtid.z)     * distanceBetweenPoints},
+        {(gtid.x + 1) * distanceBetweenPoints, (gtid.y + 1) * distanceBetweenPoints, (gtid.z)     * distanceBetweenPoints},
+        {(gtid.x + 1) * distanceBetweenPoints, (gtid.y + 1) * distanceBetweenPoints, (gtid.z + 1) * distanceBetweenPoints},
+        {(gtid.x)     * distanceBetweenPoints, (gtid.y + 1) * distanceBetweenPoints, (gtid.z + 1) * distanceBetweenPoints}
     };
 
 	float cornerValues[] = {
@@ -44,7 +42,7 @@ void MarchingCubes (int3 gtid : SV_GroupThreadID) {
 
     int index = 0;
     for (int i = 0; i < 8; i++) {
-		if (cornerValues[i] > isoLevel) index += pow(2, i);
+		if (cornerValues[i] < isoLevel) index += pow(2, i);
     }
 
     int midpointVertexCount = 0;
