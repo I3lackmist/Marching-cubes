@@ -1,6 +1,6 @@
 #include "./FastNoise.hlsl"
 
-#pragma kernel NoiseMap
+#pragma kernel Landscape
 
 RWStructuredBuffer<float> noiseValues;
 
@@ -13,11 +13,12 @@ float maxValue;
 float scale;
 float lacunarity;
 float persistence;
+float isoLevel;
 
 int seed;
 
-[numthreads(8, 8, 8)]
-void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
+[numthreads(8, 8, 1)]
+void Landscape (int3 tid : SV_DISPATCHTHREADID)
 {
 	fnl_state noise = fnlCreateState(seed);
 
@@ -30,18 +31,16 @@ void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
 
 	float posX = (float)tid.x + chunkIndex.x * (size-1);
 	float posY = (float)tid.y + chunkIndex.y * (size-1);
-	float posZ = (float)tid.z + chunkIndex.z * (size-1);
+	float posZ = (float)tid.y + chunkIndex.z * (size-1);
 
 	float sampleX;
-	float sampleY;
 	float sampleZ;
 
 	for (int i = 0; i < octaves; i++) {
 		sampleX = posX / scale * frequency;
-		sampleY = posY / scale * frequency;
 		sampleZ = posZ / scale * frequency;
 
-		noiseVal = noiseVal + ((fnlGetNoise3D(noise, sampleX, sampleY, sampleZ) + 1) * 0.5) * amplitude;
+		noiseVal = noiseVal + ((fnlGetNoise2D(noise, sampleX, sampleZ) + 1) * 0.5) * amplitude;
 
 		frequency = frequency * lacunarity;
 		amplitude = amplitude * persistence;
@@ -51,7 +50,7 @@ void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
 		noiseVal = maxValue;
 	}
 
-	noiseVal = noiseVal / maxValue;
+	noiseVal = maxValue * ();
 
 	noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseVal;
 }

@@ -42,7 +42,7 @@ void MarchingCubes (int3 gtid : SV_DISPATCHTHREADID) {
 
     int index = 0;
     for (int i = 0; i < 8; i++) {
-		if (cornerValues[i] < isoLevel) index += pow(2, i);
+		if (cornerValues[i] > isoLevel) index += pow(2, i);
     }
 
     int midpointVertexCount = 0;

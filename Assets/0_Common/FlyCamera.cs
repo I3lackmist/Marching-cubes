@@ -4,7 +4,7 @@ using UnityEngine;
 public class FlyCamera : MonoBehaviour {
 	public float acceleration = 50;
 	public float accSprintMultiplier = 4;
-	public float lookSensitivity = 1;
+	public float lookSensitivity = 3;
 	public float dampingCoefficient = 5;
 	public bool focusOnEnable = true;
 

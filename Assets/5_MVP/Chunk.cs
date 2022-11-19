@@ -14,6 +14,7 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 	ComputeBuffer noiseBuffer;
 	ComputeBuffer triBuffer;
 	ComputeBuffer triCountBuffer;
+
 	public void MakeMesh(ResultTriangle[] resultTris) {
 		mesh = new Mesh();
 
@@ -51,16 +52,26 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 	}
 
 	private void SetShaderValues() {
-		sharedProperties.densityShader.SetInt("seed", sharedProperties.seed);
-		sharedProperties.densityShader.SetFloat("size", sharedProperties.size);
-
 		properties.chunkType.SetShaderFields(sharedProperties.densityShader, sharedProperties.marchingCubesShader);
 
-		sharedProperties.densityShader.SetFloat("X", properties.chunkIndex.x);
-		sharedProperties.densityShader.SetFloat("Y", properties.chunkIndex.y);
-		sharedProperties.densityShader.SetFloat("Z", properties.chunkIndex.z);
+		sharedProperties.densityShader.SetInt("seed", sharedProperties.seed);
+		sharedProperties.densityShader.SetFloat("size", sharedProperties.size);
+		SetChunkIndexShaderValues(sharedProperties.densityShader);
+
+		foreach (ComputeShader filterShader in properties.chunkType.filterShaders) {
+			properties.chunkType.SetShaderFields(filterShader);
+			SetChunkIndexShaderValues(filterShader);
+		}
 
 		sharedProperties.marchingCubesShader.SetFloat("distanceBetweenPoints", sharedProperties.worldSize/7);
+	}
+
+	private void SetChunkIndexShaderValues(ComputeShader shader) {
+		shader.SetFloats("chunkIndex", new float[] {
+			properties.chunkIndex.x,
+			properties.chunkIndex.y,
+			properties.chunkIndex.z
+		});
 	}
 
 	private void DispatchShaders() {
@@ -79,11 +90,22 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 
 		sharedProperties.densityShader.SetBuffer(0, "noiseValues", noiseBuffer);
 		sharedProperties.densityShader.Dispatch(0, 1, 1, 1);
-		float[] noiseValues = new float[512];
 
-		noiseBuffer.GetData(noiseValues);
+		foreach (ComputeShader shader in properties.chunkType.filterShaders) {
+			shader.SetBuffer(0, "noiseValues", noiseBuffer);
+			shader.Dispatch(0, 1, 1, 1);
+		}
 
 		sharedProperties.marchingCubesShader.SetBuffer(0, "noiseValues", noiseBuffer);
+
+		// float isoPerY = 0.5f;
+
+		// float isoIncrease = (properties.chunkIndex.y < 0) ? Mathf.Log10(isoPerY * properties.chunkIndex.y* - 1) : 0;
+
+		// float isoLevel = properties.chunkType.isoLevel;
+		// isoLevel += isoLevel * isoIncrease;
+		// sharedProperties.marchingCubesShader.SetFloat("isoLevel", isoLevel);
+
 		sharedProperties.marchingCubesShader.SetBuffer(0, "resultTriangles", triBuffer);
 		sharedProperties.marchingCubesShader.Dispatch(0, 1, 1, 1);
 
