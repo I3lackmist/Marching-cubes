@@ -1,0 +1,101 @@
+#include "./TriangulationHelper.hlsl"
+
+#pragma kernel MarchingCubes
+
+struct ResultTriangle {
+    float3 vertexA; 
+    float3 vertexB;
+    float3 vertexC;
+};
+
+AppendStructuredBuffer<ResultTriangle> resultTriangles;
+RWStructuredBuffer<float> noiseValues;
+
+float distanceBetweenPoints;
+float isoLevel;
+
+float3 interpolateVerts(float3 vert1, float3 vert2, float val1, float val2) {
+    float t = (isoLevel - val1) / (val2 - val1);
+    return vert1 + t * (vert2-vert1);
+}
+
+[numthreads(8, 8, 8)]
+void MarchingCubes (int3 gtid : SV_DISPATCHTHREADID) {
+	if (gtid.x >= 7 || gtid.y >= 7 || gtid.z >= 7) return;
+
+	float3 cornerPositions[] = {
+        float3((gtid.x)     * distanceBetweenPoints, (gtid.y)     * distanceBetweenPoints, (gtid.z)     * distanceBetweenPoints),
+        float3((gtid.x + 1) * distanceBetweenPoints, (gtid.y)     * distanceBetweenPoints, (gtid.z)     * distanceBetweenPoints),
+        float3((gtid.x + 1) * distanceBetweenPoints, (gtid.y)     * distanceBetweenPoints, (gtid.z + 1) * distanceBetweenPoints),
+        float3((gtid.x)     * distanceBetweenPoints, (gtid.y)     * distanceBetweenPoints, (gtid.z + 1) * distanceBetweenPoints),
+        float3((gtid.x)     * distanceBetweenPoints, (gtid.y + 1) * distanceBetweenPoints, (gtid.z)     * distanceBetweenPoints),
+        float3((gtid.x + 1) * distanceBetweenPoints, (gtid.y + 1) * distanceBetweenPoints, (gtid.z)     * distanceBetweenPoints),
+        float3((gtid.x + 1) * distanceBetweenPoints, (gtid.y + 1) * distanceBetweenPoints, (gtid.z + 1) * distanceBetweenPoints),
+        float3((gtid.x)     * distanceBetweenPoints, (gtid.y + 1) * distanceBetweenPoints, (gtid.z + 1) * distanceBetweenPoints)
+    };
+
+	float cornerValues[] = {
+		noiseValues[(gtid.x)     + (gtid.y)     * 8 + (gtid.z)     * 64],
+		noiseValues[(gtid.x + 1) + (gtid.y)     * 8 + (gtid.z)     * 64],
+		noiseValues[(gtid.x + 1) + (gtid.y)     * 8 + (gtid.z + 1) * 64],
+		noiseValues[(gtid.x)     + (gtid.y)     * 8 + (gtid.z + 1) * 64],
+		noiseValues[(gtid.x)     + (gtid.y + 1) * 8 + (gtid.z)     * 64],
+		noiseValues[(gtid.x + 1) + (gtid.y + 1) * 8 + (gtid.z)     * 64],
+		noiseValues[(gtid.x + 1) + (gtid.y + 1) * 8 + (gtid.z + 1) * 64],
+		noiseValues[(gtid.x)     + (gtid.y + 1) * 8 + (gtid.z + 1) * 64]
+	};
+
+    int index = 0;
+    for (int i = 0; i < 8; i++) {
+		if (cornerValues[i] < isoLevel) index |= int(pow(2, i) );
+    }
+
+    int midpointVertexCount = 0;
+
+    while (TRI_TABLE[index][midpointVertexCount] != -1) {
+        midpointVertexCount++;
+    }
+
+    for (int j = 0; j < midpointVertexCount/3; j++) {
+        ResultTriangle resultTriangle;
+
+        float3 midpointA;
+        float3 midpointB;
+        float3 midpointC;
+        
+        float point1;
+        float point2;
+        
+        point1 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].x;
+        point2 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].y;
+
+        resultTriangle.vertexA = interpolateVerts(
+            cornerPositions[point1],
+            cornerPositions[point2],
+            cornerValues[point1],
+            cornerValues[point2]
+        );
+
+        point1 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].x;
+        point2 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].y;
+        
+        resultTriangle.vertexB = interpolateVerts(
+            cornerPositions[point1],
+            cornerPositions[point2],
+            cornerValues[point1],
+            cornerValues[point2]
+        );
+
+        point1 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].x;
+        point2 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].y;
+        
+        resultTriangle.vertexC = interpolateVerts(
+            cornerPositions[point1],
+            cornerPositions[point2],
+            cornerValues[point1],
+            cornerValues[point2]
+        );
+
+        resultTriangles.Append(resultTriangle);
+    }
+}
