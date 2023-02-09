@@ -1,56 +1,69 @@
-using System.Linq;
 using UnityEngine;
 
 [System.Serializable]
 public class MarchingCubeFieldData {
     public float distanceBetweenPoints;
-    public Vector3 fieldCenter;
     public int numPointsAlongAxis;
-    private float _terrainRatio;
-    private float _terrainThreshold;
-
-    public float TerrainRatio {
-        get {
-            return _terrainRatio;
-        }
-        set {
-            _terrainRatio = value;
-            _terrainThreshold = Mathf.RoundToInt((valueMin + valueMax) * _terrainRatio);
-        }
-    }
-
-    public float valueMin, valueMax;
-
-    private int[] pointValues;
-
-    public MarchingCubeFieldData() {}
-
-    public void generateValues() {
+    private float[] pointValues;
+    
+    public void generateRandomValues() {
         System.Random rnd = new System.Random();
-        pointValues = new int[numPointsAlongAxis * numPointsAlongAxis * numPointsAlongAxis];
+        pointValues = new float[numPointsAlongAxis * numPointsAlongAxis * numPointsAlongAxis];
 
         for (int x = 0; x < numPointsAlongAxis; x++) {
             for (int y = 0; y < numPointsAlongAxis; y++) {
                 for (int z = 0; z < numPointsAlongAxis; z++) {
-                    pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] =  rnd.Next(0,100);
+                    pointValues[IndexFromCoordinates(x,y,z)] =  rnd.Next(0,100) / 100f;
                 }
             }
         }
-
-        valueMin = pointValues.Min();
-        valueMax = pointValues.Max();
     }
 
-    public Vector3 getPointPosition(int x, int y, int z) {
+    public void generateCubeValues() {
+        pointValues = new float[numPointsAlongAxis * numPointsAlongAxis * numPointsAlongAxis];
+
+        for (int x = 0; x < numPointsAlongAxis; x++) {
+            for (int y = 0; y < numPointsAlongAxis; y++) {
+                for (int z = 0; z < numPointsAlongAxis; z++) {
+                    float value = 0;
+
+                    if (
+                        x == 0 || x == numPointsAlongAxis-1 ||
+                        y == 0 || y == numPointsAlongAxis-1 ||
+                        z == 0 || z == numPointsAlongAxis-1
+                    )  value = 0;
+                    else value = 1;
+                    
+                    pointValues[IndexFromCoordinates(x,y,z)] = value;
+                }
+            }
+        }
+    }
+
+    public int IndexFromCoordinates(int x, int y, int z) {
+        return z*numPointsAlongAxis*numPointsAlongAxis + y*numPointsAlongAxis + x;
+    }
+
+    public Vector3 getPointPosition(Vector3Int index) {
+        validateIndex(index);
+
         return
-            fieldCenter -
-            Vector3.one * (((float)numPointsAlongAxis - 1f) * distanceBetweenPoints) * 0.5f +
-            new Vector3(x, y, z) * distanceBetweenPoints;
+            new Vector3(index.x, index.y, index.z) * distanceBetweenPoints;
     }
 
-    public bool getPointValue(int x, int y, int z) {
-        if (x<0 || x>=numPointsAlongAxis || y<0 || y>=numPointsAlongAxis || z<0 || z>=numPointsAlongAxis) return false;
+    public float getPointValue(Vector3Int index) {
+        validateIndex(index);
 
-        return pointValues[(z * numPointsAlongAxis * numPointsAlongAxis) + (y * numPointsAlongAxis) + x] > _terrainThreshold;
+        return pointValues[(index.z * numPointsAlongAxis * numPointsAlongAxis) + (index.y * numPointsAlongAxis) + index.x];
+    }
+
+    private void validateIndex(Vector3Int index) {
+        if (
+            index.x < 0 || index.x > numPointsAlongAxis ||
+            index.y < 0 || index.y > numPointsAlongAxis ||
+            index.z < 0 || index.z > numPointsAlongAxis
+        )  {
+            throw new System.IndexOutOfRangeException($"Accessing point at index out of bounds. Value: {index}");
+        }
     }
 }

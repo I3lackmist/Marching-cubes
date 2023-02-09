@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8195854062978112891}
   - component: {fileID: 8195854062978112894}
   - component: {fileID: 8195854062978112893}
+  - component: {fileID: 8795410835161538300}
   m_Layer: 0
   m_Name: Chunk
   m_TagString: Untagged
@@ -63,7 +64,11 @@ MonoBehaviour:
       octaves: 0
       scale: 0
       maxValue: 0
+      minHeight: 0
+      maxHeight: 0
+      noiseType: 0
       isoLevel: 0
+      filterShaders: []
 --- !u!33 &8195854062978112894
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -79,7 +84,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8195854062978112890}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -114,3 +119,17 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &8795410835161538300
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8195854062978112890}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}

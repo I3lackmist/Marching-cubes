@@ -19,6 +19,15 @@ public class ChunkType {
 
 	[SerializeField]
 	public float maxValue;
+	
+	[SerializeField]
+	public float minHeight;
+	
+	[SerializeField]
+	public float maxHeight;
+
+	[SerializeField]
+	public NoiseType noiseType;
 
 	[SerializeField]
 	public float isoLevel;
@@ -32,7 +41,10 @@ public class ChunkType {
 		shader.SetFloat("lacunarity", lacunarity);
 		shader.SetFloat("persistence", persistence);
 		shader.SetFloat("maxValue", maxValue);
+		shader.SetFloat("minHeight", minHeight);
+		shader.SetFloat("maxHeight", maxHeight);
 		shader.SetFloat("isoLevel", isoLevel);
+		shader.SetInt("noiseType", (int)noiseType);
 	}
 
 	public void SetShaderFields(ComputeShader noiseShader, ComputeShader cubeShader) {

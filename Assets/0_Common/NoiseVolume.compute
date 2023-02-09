@@ -14,14 +14,18 @@ float scale;
 float lacunarity;
 float persistence;
 
+int noiseType;
 int seed;
+
+float minHeight; // added for compatibility, ignore
+float maxheight; // added for compatibility, ignore
 
 [numthreads(8, 8, 8)]
 void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
 {
 	fnl_state noise = fnlCreateState(seed);
 
-	noise.noise_type = FNL_NOISE_OPENSIMPLEX2;
+	noise.noise_type = noiseType;
 
 	float noiseVal = 0;
 

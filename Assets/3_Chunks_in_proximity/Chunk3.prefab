@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3097135364812527015}
   - component: {fileID: 3097135364812527012}
   - component: {fileID: 3097135364812527018}
-  - component: {fileID: 3097135364812527009}
+  - component: {fileID: 6911433159370324053}
   m_Layer: 0
   m_Name: Chunk3
   m_TagString: Untagged
@@ -99,7 +99,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   noiseMapProperties:
     seed: 1
-    shader: {fileID: 7200000, guid: 63b4378013f7c37478032714df11102f, type: 3}
+    animate: 0
+    speed: 1
+    time: 0
+    shader: {fileID: 7200000, guid: 711d5eb9b7aee564a9085db85a764d7b, type: 3}
     height: 64
     width: 64
     lacunarity: 2
@@ -107,8 +110,7 @@ MonoBehaviour:
     octaves: 3
     scale: 1
   texture: {fileID: 0}
-  chunkIndex: {x: 0, y: 0}
---- !u!114 &3097135364812527009
+--- !u!114 &6911433159370324053
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -117,7 +119,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3097135364812527019}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 74ded7a08c17d69448a6c2f87e7fce27, type: 3}
+  m_Script: {fileID: 11500000, guid: 70ea8d6887736d94799cc600e0470fce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   chunkIndex: {x: 0, y: 0}

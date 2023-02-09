@@ -32,11 +32,11 @@ public static class Noise {
 	}
 
     public static void MakeNoiseTexture(NoiseMapProperties properties, Texture2D targetTexture) {
-
 		RenderTexture renderTexture = new RenderTexture(properties.width, properties.height, 24);
 		renderTexture.enableRandomWrite = true;
-
-		properties.shader.SetTexture(0, "renderTexture", renderTexture);
+		
+		int kernelId = properties.shader.FindKernel("NoiseMap");
+		properties.shader.SetTexture(kernelId, "renderTexture", renderTexture);
 
 		properties.shader.SetInt("seed",properties.seed);
 
@@ -52,7 +52,7 @@ public static class Noise {
 		int xChunks = properties.width / 8;
 		int yChunks = properties.height / 8;
 
-		properties.shader.Dispatch(0, xChunks, yChunks, 1);
+		properties.shader.Dispatch(kernelId, xChunks, yChunks, 1);
 
 		RenderTexture.active = renderTexture;
 		targetTexture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);

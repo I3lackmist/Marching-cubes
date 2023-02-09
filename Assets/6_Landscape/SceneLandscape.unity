@@ -175,7 +175,12 @@ MonoBehaviour:
       octaves: 3
       scale: 0.25
       maxValue: 3
+      minHeight: 0
+      maxHeight: 15
+      noiseType: 1
       isoLevel: 0.25
+      filterShaders:
+      - {fileID: 7200000, guid: 2dffd565aea98074eaa5084dec416157, type: 3}
     chunkLimit: 5000
     brushSize: 6
   queueProperties:
@@ -188,8 +193,6 @@ MonoBehaviour:
     worldSize: 8
     maxDistanceFromChunk: 30
     marchingCubesShader: {fileID: 7200000, guid: 78cea64fb9a8dee4386971400132c900, type: 3}
-    filterShaders:
-    - {fileID: 7200000, guid: 6b7dc82d5fd692c43aea4b4b87084aa6, type: 3}
     densityShader: {fileID: 7200000, guid: fbc4901dcdb8f4e47baa9aee3bb4e311, type: 3}
     player: {fileID: 0}
   disposeQueue: {fileID: 1177577661}

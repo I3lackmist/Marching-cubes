@@ -8,6 +8,9 @@ public class NoiseMapProperties {
 	public int seed;
 
 	[SerializeField]
+	public bool animate;
+
+	[SerializeField]
 	public int speed;
 	public float time = 0;
 

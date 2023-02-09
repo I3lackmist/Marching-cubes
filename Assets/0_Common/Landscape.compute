@@ -5,7 +5,6 @@
 RWStructuredBuffer<float> noiseValues;
 
 float size;
-
 float3 chunkIndex;
 
 int octaves;
@@ -15,23 +14,29 @@ float lacunarity;
 float persistence;
 float isoLevel;
 
+float maxHeight;
+float minHeight;
+
+int noiseType;
 int seed;
 
-[numthreads(8, 8, 1)]
+[numthreads(8, 8, 8)]
 void Landscape (int3 tid : SV_DISPATCHTHREADID)
 {
+	float posY = (float)tid.y + chunkIndex.y * (size-1);
+
+	if (posY <= 0) return;
+
 	fnl_state noise = fnlCreateState(seed);
+	noise.noise_type = noiseType;
 
-	noise.noise_type = FNL_NOISE_OPENSIMPLEX2;
-
-	float noiseVal = 0;
+	float heightVal = 0;
 
 	float frequency = 1;
 	float amplitude = 1;
 
 	float posX = (float)tid.x + chunkIndex.x * (size-1);
-	float posY = (float)tid.y + chunkIndex.y * (size-1);
-	float posZ = (float)tid.y + chunkIndex.z * (size-1);
+	float posZ = (float)tid.z + chunkIndex.z * (size-1);
 
 	float sampleX;
 	float sampleZ;
@@ -40,17 +45,22 @@ void Landscape (int3 tid : SV_DISPATCHTHREADID)
 		sampleX = posX / scale * frequency;
 		sampleZ = posZ / scale * frequency;
 
-		noiseVal = noiseVal + ((fnlGetNoise2D(noise, sampleX, sampleZ) + 1) * 0.5) * amplitude;
+		heightVal = heightVal + ((fnlGetNoise2D(noise, sampleX, sampleZ) + 1) * 0.5) * amplitude;
 
 		frequency = frequency * lacunarity;
 		amplitude = amplitude * persistence;
 	}
 
-	if (noiseVal > maxValue) {
-		noiseVal = maxValue;
+	heightVal = heightVal / maxValue * maxHeight;
+	
+	float noiseValue = noiseValues[tid.x + tid.y * 8 + tid.z * 64];
+
+	if (posY >= heightVal + minHeight) {
+		noiseValue = maxValue;
+	}
+	else {
+		noiseValue = 0;
 	}
 
-	noiseVal = maxValue * ();
-
-	noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseVal;
+	noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseValue;
 }

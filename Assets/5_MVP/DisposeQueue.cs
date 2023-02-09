@@ -31,6 +31,10 @@ public class DisposeQueue : MonoBehaviour
 		}
 
 		int processThisCycle = (disposables.Count > properties.processPerCycle) ? properties.processPerCycle : disposables.Count;
+		
+		if (processThisCycle < 0 || processThisCycle > properties.processPerCycle) {
+			Debug.LogWarning($"Dispose queue processing less than 0 or more than max. Value: {processThisCycle}");
+		}
 
 		for (int i = 0; i < processThisCycle; i++) {
 			index = (index++) % disposables.Count;

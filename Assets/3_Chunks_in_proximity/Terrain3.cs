@@ -25,6 +25,8 @@ public class Terrain3 : MonoBehaviour
 		chunks = new Dictionary<Vector2Int, GameObject>();
 		halfChunkSize = terrainProperties.chunkSize/2;
 		brush = new TerrainBrush();
+		
+		brush.Is3D = false;
 		brush.Size = terrainProperties.minDistance;
 		renderQueue = new List<GameObject>();
 	}
@@ -39,7 +41,7 @@ public class Terrain3 : MonoBehaviour
 
 		List<Vector2Int> brushpoints = brush.Brush
 			.Select(point =>
-				new Vector2Int(point.x, point.y) + ChunkIndexFromPosition(player.position)
+				new Vector2Int(point.x, point.z) + ChunkIndexFromPosition(player.position)
 			)
 			.Except(chunks.Keys)
 			.ToList();

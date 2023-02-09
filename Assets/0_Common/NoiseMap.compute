@@ -23,7 +23,10 @@ void NoiseMap (int3 gtid : SV_GROUPTHREADID, int3 gid : SV_GROUPID, int3 tid : S
 {
 	fnl_state noise = fnlCreateState(seed);
 
-	noise.noise_type = FNL_NOISE_OPENSIMPLEX2;
+	// noise.noise_type = FNL_NOISE_PERLIN;
+	// noise.noise_type = FNL_NOISE_OPENSIMPLEX2;
+	// noise.noise_type = FNL_NOISE_VALUE_CUBIC;
+	noise.noise_type = FNL_NOISE_VALUE;
 
 	float noiseVal = 0;
 

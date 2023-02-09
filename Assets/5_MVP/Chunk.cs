@@ -4,16 +4,43 @@ using UnityEngine;
 
 public class Chunk : MonoBehaviour, IRenderable, IDisposable
 {
+	private const int maxTriangles = 7*7*7 * 5;
+	private const int maxPointsInCube = 8*8*8;
+
 	public Terrain parent;
 	private Mesh mesh;
 	public SharedChunkProperties sharedProperties;
 	public ChunkProperties properties;
 
 	private MeshFilter meshFilter;
+	private MeshRenderer meshRenderer;
+	private bool visible = false;
+	
+	public bool Visible { 
+		get => visible;
+	}
 
 	ComputeBuffer noiseBuffer;
 	ComputeBuffer triBuffer;
 	ComputeBuffer triCountBuffer;
+
+	private bool isVisibleFrom(Bounds bounds, Camera camera) {
+		Plane[] planes = GeometryUtility.CalculateFrustumPlanes(camera);
+        return GeometryUtility.TestPlanesAABB(planes, bounds);
+	}
+
+	public void FixedUpdate() {
+		bool visibleLastFrame = visible;
+
+		visible = isVisibleFrom(
+			new Bounds(transform.position, Vector3.one * sharedProperties.worldSize * 1.5f), 
+			Camera.main
+		);
+
+		if (visible != visibleLastFrame) {
+			meshRenderer.enabled = visible;
+		}
+	}
 
 	public void MakeMesh(ResultTriangle[] resultTris) {
 		mesh = new Mesh();
@@ -44,9 +71,16 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 
 	public void Render(Action doneFunction) {
 		SetShaderValues();
-		DispatchShaders();
+		bool success = DispatchShaders();
 
 		doneFunction();
+
+		ReleaseBuffers();
+		
+		if (!success) {
+			parent.DeleteChunk(properties.chunkIndex);
+			return;
+		} 
 
 		parent.EnqueueDispose(properties.chunkIndex);
 	}
@@ -56,10 +90,13 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 
 		sharedProperties.densityShader.SetInt("seed", sharedProperties.seed);
 		sharedProperties.densityShader.SetFloat("size", sharedProperties.size);
+		
 		SetChunkIndexShaderValues(sharedProperties.densityShader);
 
 		foreach (ComputeShader filterShader in properties.chunkType.filterShaders) {
 			properties.chunkType.SetShaderFields(filterShader);
+			filterShader.SetInt("seed", sharedProperties.seed);
+			filterShader.SetFloat("size", sharedProperties.size);
 			SetChunkIndexShaderValues(filterShader);
 		}
 
@@ -74,19 +111,20 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 		});
 	}
 
-	private void DispatchShaders() {
+	private bool DispatchShaders() {
 		noiseBuffer = new ComputeBuffer(
-			512,
+			maxPointsInCube,
 			sizeof(float)
 		);
 
 		triBuffer = new ComputeBuffer(
-			2048,
+			maxTriangles,
 			sizeof(float) * 9, // Bug: HLSL float 32 bits/4 bytes, yet needs 72 bytes for some reason?
 			ComputeBufferType.Append
 		);
 
 		triCountBuffer = new ComputeBuffer (1, sizeof (int), ComputeBufferType.Raw);
+		triBuffer.SetCounterValue(0);
 
 		sharedProperties.densityShader.SetBuffer(0, "noiseValues", noiseBuffer);
 		sharedProperties.densityShader.Dispatch(0, 1, 1, 1);
@@ -97,35 +135,50 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 		}
 
 		sharedProperties.marchingCubesShader.SetBuffer(0, "noiseValues", noiseBuffer);
-
-		// float isoPerY = 0.5f;
-
-		// float isoIncrease = (properties.chunkIndex.y < 0) ? Mathf.Log10(isoPerY * properties.chunkIndex.y* - 1) : 0;
-
-		// float isoLevel = properties.chunkType.isoLevel;
-		// isoLevel += isoLevel * isoIncrease;
-		// sharedProperties.marchingCubesShader.SetFloat("isoLevel", isoLevel);
-
+		
 		sharedProperties.marchingCubesShader.SetBuffer(0, "resultTriangles", triBuffer);
 		sharedProperties.marchingCubesShader.Dispatch(0, 1, 1, 1);
-
 		ComputeBuffer.CopyCount(triBuffer, triCountBuffer, 0);
 
 		int[] triCountArray = { 0 };
         triCountBuffer.GetData(triCountArray);
+
         int numTris = triCountArray[0];
 
+		if (numTris < 0 || numTris > maxTriangles) {
+			Debug.LogWarning($"Number of triangles is incorrect. Value: {numTris}");
+		
+			return false;
+		}
+
 		ResultTriangle[] resultTriangles = new ResultTriangle[numTris];
-		triBuffer.GetData(resultTriangles);
+		triBuffer.GetData(resultTriangles, 0, 0, numTris);
 
 		MakeMesh(resultTriangles);
+
+		return true;
+	}
+
+	private void ForceReleaseBuffers() {
+		noiseBuffer.Release();
+		triBuffer.Release();
+		triCountBuffer.Release();
 	}
 
 	private void ReleaseBuffers() {
 		if (noiseBuffer != null) {
 			noiseBuffer.Release();
+			noiseBuffer.Dispose();
+		}
+
+		if (triBuffer != null) {
 			triBuffer.Release();
+			triBuffer.Dispose();
+		}
+
+		if (triCountBuffer != null) {
 			triCountBuffer.Release();
+			triCountBuffer.Dispose();
 		}
 	}
 
@@ -133,9 +186,6 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 		float distanceFromPlayer = Vector3.Distance(transform.position, sharedProperties.player.position);
 
 		if (distanceFromPlayer > sharedProperties.maxDistanceFromChunk) {
-			DisposeMesh();
-			ReleaseBuffers();
-
 			parent.DeleteChunk(properties.chunkIndex);
 		}
 	}
@@ -157,10 +207,12 @@ public class Chunk : MonoBehaviour, IRenderable, IDisposable
 	}
 
 	public void Destroy() {
+		DisposeMesh();
 		Destroy(gameObject);
 	}
 
 	private void OnEnable() {
+		meshRenderer = gameObject.GetComponent<MeshRenderer>();
 		meshFilter = gameObject.GetComponent<MeshFilter>();
 	}
 }

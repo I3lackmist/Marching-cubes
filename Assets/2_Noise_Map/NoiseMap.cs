@@ -1,8 +1,6 @@
 using UnityEngine;
 
 public class NoiseMap : MonoBehaviour {
-
-
 	[SerializeField]
 	public NoiseMapProperties noiseMapProperties;
 
@@ -29,6 +27,14 @@ public class NoiseMap : MonoBehaviour {
 		}
 
 		noiseMapProperties.time = 0;
+	}
+
+	public void Update() {
+		if (noiseMapProperties.animate) {
+			noiseMapProperties.time += Time.deltaTime * noiseMapProperties.speed;
+			
+			Draw();
+		}
 	}
 
 	public void Draw() {

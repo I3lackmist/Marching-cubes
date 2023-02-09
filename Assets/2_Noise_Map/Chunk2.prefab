@@ -32,7 +32,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &5506061903608524250
 MonoBehaviour:
@@ -48,15 +48,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   noiseMapProperties:
     seed: 76
-    speed: 1000
-    time: 4.3501587
+    animate: 1
+    speed: 100
+    time: 0
     shader: {fileID: 7200000, guid: 63b4378013f7c37478032714df11102f, type: 3}
     height: 1024
     width: 1024
     lacunarity: 3
-    persistence: 0
+    persistence: 0.5
     octaves: 1
-    scale: 5
+    scale: 1
   texture: {fileID: 0}
 --- !u!33 &5506061903608524251
 MeshFilter:

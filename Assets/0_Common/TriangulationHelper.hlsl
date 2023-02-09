@@ -1,7 +1,7 @@
 #ifndef TriangulationHelper
 #define TriangulationHelper
 
-static const int2 MIDPOINT_PAIRS[] = {
+static const int2 MIDPOINT_PAIRS[12] = {
     {0, 1},
     {1, 2},
     {2, 3},
