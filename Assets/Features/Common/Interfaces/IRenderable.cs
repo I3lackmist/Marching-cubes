@@ -1,6 +1,7 @@
 using System;
 
-namespace MarchingCubes.Chunking.Interfaces {
+namespace MarchingCubes.Common.Interfaces 
+{
 	public interface IRenderable
 	{
 		void Render(Action doneFunction);

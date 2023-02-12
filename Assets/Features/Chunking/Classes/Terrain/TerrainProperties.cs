@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using MarchingCubes.Common.Enums;
+using MarchingCubes.Common.Interfaces;
 
 namespace MarchingCubes.Chunking.Classes 
 {
@@ -12,7 +12,10 @@ namespace MarchingCubes.Chunking.Classes
 		public GameObject chunkPrefab;
 
 		[SerializeField]
-		public List<ChunkType> chunkTypes;
+		public List<Biome> biomes;
+		
+		[SerializeField]
+		public List<IShaderPass> shaderPasses;
 
 		[SerializeField]
 		public int chunkLimit;

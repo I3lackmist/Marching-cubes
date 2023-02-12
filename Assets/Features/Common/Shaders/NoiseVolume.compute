@@ -17,8 +17,10 @@ float persistence;
 int noiseType;
 int seed;
 
-float minHeight; // added for compatibility, ignore
-float maxheight; // added for compatibility, ignore
+float minHeight;
+float maxheight;
+
+float constant;
 
 [numthreads(8, 8, 8)]
 void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
@@ -55,7 +57,7 @@ void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
 		noiseVal = maxValue;
 	}
 
-	noiseVal = noiseVal / maxValue;
+	noiseVal = noiseVal / maxValue + constant;
 
-	noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseVal;
+	noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseValues[tid.x + tid.y * 8 + tid.z * 64] + noiseVal;
 }

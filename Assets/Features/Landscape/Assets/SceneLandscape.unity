@@ -14,12 +14,12 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
-  m_Fog: 0
-  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  m_FogMode: 3
+  m_Fog: 1
+  m_FogColor: {r: 0.40392157, g: 0.5, b: 0.5, a: 1}
+  m_FogMode: 1
   m_FogDensity: 0.01
   m_LinearFogStart: 0
-  m_LinearFogEnd: 300
+  m_LinearFogEnd: 100
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
@@ -169,20 +169,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   properties:
     chunkPrefab: {fileID: 8195854062978112890, guid: 9dbf78e282fc232479d25508cdfa63b6, type: 3}
-    chunkTypes:
-    - lacunarity: 2
-      persistence: 0.5
-      octaves: 3
-      scale: 0.25
-      maxValue: 3
-      minHeight: 0
-      maxHeight: 15
-      noiseType: 1
-      isoLevel: 0.25
-      filterShaders:
-      - {fileID: 7200000, guid: 2dffd565aea98074eaa5084dec416157, type: 3}
+    biomes:
+    - densityShaderPasses:
+      - octaves: 1
+        lacunarity: 1
+        persistence: 1
+        scale: 0.1
+        maxValue: 0.8
+        seed: 0
+        size: 8
+        noiseType: 0
+        constant: -0.2
+      marchingCubeShaderPasses:
+      - isoLevel: 0.5
+        distanceBetweenPoints: 4.571429
+      overworldShaderPasses:
+      - octaves: 10
+        lacunarity: 0.5
+        persistence: 1
+        scale: 0.5
+        maxValue: 10
+        seed: 1
+        size: 8
+        noiseType: 4
+        constant: 0
+        minHeight: 1
+        maxHeight: 5
     chunkLimit: 5000
-    brushSize: 6
+    brushSize: 5
   queueProperties:
     processPerCycle: 16
     cycleLength: 0.05
@@ -190,13 +204,18 @@ MonoBehaviour:
   sharedChunkProperties:
     seed: 2137
     size: 8
-    worldSize: 8
-    maxDistanceFromChunk: 30
+    worldSize: 32
+    maxDistanceFromChunk: 5
     marchingCubesShader: {fileID: 7200000, guid: 78cea64fb9a8dee4386971400132c900, type: 3}
     densityShader: {fileID: 7200000, guid: fbc4901dcdb8f4e47baa9aee3bb4e311, type: 3}
+    overworldCutoffShader: {fileID: 7200000, guid: 7539ffe647285c24487c9ce13ce4c64e, type: 3}
+    alwaysVisible: 1
     player: {fileID: 0}
+    parentTransform: {fileID: 80071373}
+    playerGridPosition: {x: 0, y: 0, z: 0}
   disposeQueue: {fileID: 1177577661}
   renderQueue: {fileID: 1177577659}
+  chunkCount: 0
 --- !u!1 &402522767
 GameObject:
   m_ObjectHideFlags: 0
@@ -343,9 +362,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   properties:
-    processPerCycle: 16
+    processPerCycle: 25
     cycleLength: 0.1
-    processInUpdate: 0
+    processInUpdate: 1
 --- !u!4 &1177577660
 Transform:
   m_ObjectHideFlags: 0
@@ -374,9 +393,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   properties:
-    processPerCycle: 25
-    cycleLength: 0.05
-    processInUpdate: 0
+    processPerCycle: 100
+    cycleLength: 0.1
+    processInUpdate: 1
 --- !u!1 &1873347189
 GameObject:
   m_ObjectHideFlags: 0
@@ -390,6 +409,7 @@ GameObject:
   - component: {fileID: 1873347190}
   - component: {fileID: 1873347193}
   - component: {fileID: 1873347194}
+  - component: {fileID: 1873347195}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -414,8 +434,8 @@ Camera:
   m_GameObject: {fileID: 1873347189}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.40392157, g: 0.5019608, b: 0.5019608, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -510,6 +530,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   acceleration: 50
   accSprintMultiplier: 4
-  lookSensitivity: 1
+  lookSensitivity: 3
   dampingCoefficient: 5
   focusOnEnable: 1
+--- !u!114 &1873347195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1873347189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51706a73d800be541a415f32709a640b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  overworldColor: {r: 0.4039216, g: 0.5019608, b: 0.5019608, a: 0}
+  underworldColor: {r: 0, g: 0, b: 0, a: 0}
+  underworldDistance: 50
+  overworldDistance: 100

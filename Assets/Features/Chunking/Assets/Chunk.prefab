@@ -53,22 +53,19 @@ MonoBehaviour:
     size: 0
     worldSize: 0
     maxDistanceFromChunk: 0
-    marchingCubesShader: {fileID: 0}
-    densityShader: {fileID: 0}
+    marchingCubesShader: {fileID: 7200000, guid: 78cea64fb9a8dee4386971400132c900, type: 3}
+    densityShader: {fileID: 7200000, guid: fbc4901dcdb8f4e47baa9aee3bb4e311, type: 3}
+    overworldCutoffShader: {fileID: 0}
+    alwaysVisible: 0
     player: {fileID: 0}
+    parentTransform: {fileID: 0}
+    playerGridPosition: {x: 0, y: 0, z: 0}
   properties:
     chunkIndex: {x: 0, y: 0, z: 0}
-    chunkType:
-      lacunarity: 0
-      persistence: 0
-      octaves: 0
-      scale: 0
-      maxValue: 0
-      minHeight: 0
-      maxHeight: 0
-      noiseType: 0
-      isoLevel: 0
-      filterShaders: []
+    biome:
+      densityShaderPasses: []
+      marchingCubeShaderPasses: []
+      overworldShaderPasses: []
 --- !u!33 &8195854062978112894
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -76,7 +73,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8195854062978112890}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 0}
 --- !u!23 &8195854062978112893
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -84,7 +81,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8195854062978112890}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1

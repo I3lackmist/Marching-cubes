@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using MarchingCubes.Common.Enums;
 
 namespace MarchingCubes.Chunking.Classes 
 {
@@ -11,6 +10,6 @@ namespace MarchingCubes.Chunking.Classes
 		public Vector3Int chunkIndex;
 
 		[SerializeField]
-		public ChunkType chunkType;
+		public Biome biome;
 	}
 }

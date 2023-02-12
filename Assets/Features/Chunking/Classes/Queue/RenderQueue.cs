@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using MarchingCubes.Chunking.Interfaces;
+using MarchingCubes.Common.Interfaces;
 
 namespace MarchingCubes.Chunking.Classes 
 {
@@ -11,39 +11,51 @@ namespace MarchingCubes.Chunking.Classes
 	{
 		[SerializeField]
 		private QueueProperties properties;
-		public Action DoneFunction;
+
+		public Action Done;
 
 		private int renderingCount = 0;
 		private List<IRenderable> renderQueue;
 
 		public QueueProperties QueueProperties => properties;
 
-		public void Enqueue(IRenderable renderable) {
+		public void Enqueue(IRenderable renderable) 
+		{
 			renderQueue.Add(renderable);
 		}
 
-		public void Unqueue(IRenderable renderable) {
+		public void Unqueue(IRenderable renderable) 
+		{
 			renderQueue.Remove(renderable);
 		}
 
-		private void DoneRendering() {
+		private void DoneRendering() 
+		{
 			renderingCount--;
+
+			if (renderingCount < 0) {
+				Debug.LogError("Rendering count is less than 0.");
+			}
 		}
 
-		private void OnEnable() {
+		private void OnEnable() 
+		{
 			renderQueue = new List<IRenderable>();
-			DoneFunction = new Action(DoneRendering);
+			Done = new Action(DoneRendering);
 		}
 
-		private void Start() {
+		private void Start() 
+		{
 			if (!properties.processInUpdate) StartCoroutine(Cycle());
 		}
 
-		private void Update() {
+		private void Update() 
+		{
 			if (properties.processInUpdate) CycleAction();
 		}
 
-		private IEnumerator Cycle() {
+		private IEnumerator Cycle() 
+		{
 			while (true) {
 				CycleAction();
 
@@ -51,14 +63,15 @@ namespace MarchingCubes.Chunking.Classes
 			}
 		}
 
-		private void CycleAction() {
+		private void CycleAction() 
+		{
 			for (int i = 0; i < properties.processPerCycle - renderingCount; i++) {
-					if (!renderQueue.Any()) break;
+				if (!renderQueue.Any()) break;
 
-					renderQueue[0].Render(DoneFunction);
-					renderQueue.RemoveAt(0);
-					renderingCount++;
-				}
+				renderingCount++;
+				renderQueue[0].Render(Done);
+				renderQueue.RemoveAt(0);
+			}
 		}
 	}
 }

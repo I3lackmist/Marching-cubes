@@ -1,12 +1,11 @@
 using System;
 using UnityEngine;
 
-
-namespace MarchingCubes.Chunking.Classes {
+namespace MarchingCubes.Chunking.Classes 
+{
 	[Serializable]
 	public class SharedChunkProperties
 	{
-
 		[SerializeField]
 		public int seed;
 
@@ -24,8 +23,19 @@ namespace MarchingCubes.Chunking.Classes {
 
 		[SerializeField]
 		public ComputeShader densityShader;
+		[SerializeField]
+		public ComputeShader overworldCutoffShader;
+
+		[SerializeField]
+		public bool alwaysVisible;
 
 		[SerializeField]
 		public Transform player;
+
+		[SerializeField]
+		public Transform parentTransform;
+
+		[SerializeField]
+		public Vector3Int playerGridPosition;
 	}
 }

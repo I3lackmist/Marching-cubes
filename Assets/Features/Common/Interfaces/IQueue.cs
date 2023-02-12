@@ -1,6 +1,6 @@
 using MarchingCubes.Chunking.Classes;
 
-namespace MarchingCubes.Chunking.Interfaces 
+namespace MarchingCubes.Common.Interfaces 
 {
     public interface IQueue
     {

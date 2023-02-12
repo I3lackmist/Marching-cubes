@@ -1,5 +1,7 @@
-namespace MarchingCubes.Common.Enums {
-    public enum NoiseType {
+namespace MarchingCubes.Common.Enums 
+{
+    public enum NoiseType 
+    {
         OPENSIMPLEX2 = 0,
         OPENSIMPLEX2S = 1,
         CELLULAR = 2,

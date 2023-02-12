@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using UnityEngine;
+using MarchingCubes.Common.Helpers;
 
 namespace MarchingCubes.Chunking.Classes 
 {
@@ -25,11 +26,15 @@ namespace MarchingCubes.Chunking.Classes
 		[SerializeField]
 		public Dictionary<Vector3Int, Chunk> chunks;
 
+		[SerializeField]
+		public int chunkCount;
+
 		private ChunkBrush chunkBrush;
 
 		private List<Vector3Int> brushPoints;
 
-		private void OnEnable() {
+		private void OnEnable() 
+		{
 			sharedChunkProperties.player = Camera.main.transform;
 
 			chunks = new Dictionary<Vector3Int, Chunk>();
@@ -39,7 +44,8 @@ namespace MarchingCubes.Chunking.Classes
 			brushPoints = chunkBrush.Brush;
 		}
 
-		public IEnumerator Cycle() {
+		public IEnumerator Cycle() 
+		{
 			while(true) {
 				CycleAction();
 
@@ -47,7 +53,8 @@ namespace MarchingCubes.Chunking.Classes
 			}
 		}
 
-		public void CycleAction() {
+		public void CycleAction() 
+		{
 			if (chunks.Count >= properties.chunkLimit) return;
 
 			MakeChunks(
@@ -56,40 +63,51 @@ namespace MarchingCubes.Chunking.Classes
 			);
 		}
 
-		public Vector3Int ChunkIndexFromPosition(Vector3 position) {
-			return new Vector3Int(
-				Mathf.FloorToInt(position.x / sharedChunkProperties.worldSize),
-				Mathf.FloorToInt(position.y / sharedChunkProperties.worldSize),
-				Mathf.FloorToInt(position.z / sharedChunkProperties.worldSize)
-			);
-		}
-
-		private void Start() {
+		private void Start() 
+		{
 			if (!queueProperties.processInUpdate) StartCoroutine(Cycle());
 		}
 
-		private void Update() {
+		private void Update() 
+		{
 			if (queueProperties.processInUpdate) CycleAction();
+
+			sharedChunkProperties.playerGridPosition = GridHelper.ChunkIndexFromPosition(
+				sharedChunkProperties.player.position, 
+				sharedChunkProperties.worldSize
+			);
+
 		}
 
-		private List<Vector3Int> GetNewPointsAroundPlayer() {
+		private void FixedUpdate() {
+			chunkCount = chunks.Count();
+		}
+
+		private List<Vector3Int> GetNewPointsAroundPlayer() 
+		{
 			return brushPoints
 				.Select(point =>
-					new Vector3Int(point.x, point.y, point.z) + ChunkIndexFromPosition(sharedChunkProperties.player.position)
+					new Vector3Int(point.x, point.y, point.z) + GridHelper.ChunkIndexFromPosition(
+						sharedChunkProperties.player.position, 
+						sharedChunkProperties.worldSize
+					)
 				)
 				.Except(chunks.Keys)
 				.ToList();
 		}
 
-		private void MakeChunks(IEnumerable<Vector3Int> points) {
-			foreach (var point in points) {
+		private void MakeChunks(IEnumerable<Vector3Int> points) 
+		{
+			foreach (var point in points) 
+			{
 				Vector3 chunkPosition =
 					new Vector3(point.x, point.y, point.z) * sharedChunkProperties.worldSize;
 
 				Chunk chunk = Instantiate(
 					properties.chunkPrefab,
 					chunkPosition,
-					Quaternion.identity
+					Quaternion.identity,
+					sharedChunkProperties.parentTransform ?? transform
 				).GetComponent<Chunk>();
 
 				chunks.Add(point, chunk);
@@ -97,17 +115,19 @@ namespace MarchingCubes.Chunking.Classes
 				chunk.parent = this;
 				chunk.sharedProperties = sharedChunkProperties;
 				chunk.properties.chunkIndex = point;
-				chunk.properties.chunkType = properties.chunkTypes[0];
+				chunk.properties.biome = properties.biomes[0];
 
 				renderQueue.Enqueue(chunk);
 			}
 		}
 
-		public void EnqueueDispose(Vector3Int chunkIndex) {
+		public void EnqueueDispose(Vector3Int chunkIndex) 
+		{
 			disposeQueue.Enqueue(chunks[chunkIndex]);
 		}
 
-		public void DeleteChunk(Vector3Int chunkIndex) {
+		public void DeleteChunk(Vector3Int chunkIndex) 
+		{
 			Chunk chunk = chunks[chunkIndex];
 			chunks.Remove(chunkIndex);
 			disposeQueue.Unqueue(chunk);
