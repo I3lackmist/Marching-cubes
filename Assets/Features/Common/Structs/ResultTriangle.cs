@@ -1,4 +1,5 @@
 using UnityEngine;
+
 namespace MarchingCubes.Common.Structs {
 	[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
 	public struct ResultTriangle {

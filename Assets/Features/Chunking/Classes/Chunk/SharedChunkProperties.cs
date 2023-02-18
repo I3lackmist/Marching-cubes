@@ -19,14 +19,6 @@ namespace MarchingCubes.Chunking.Classes
 		public float maxDistanceFromChunk;
 
 		[SerializeField]
-		public ComputeShader marchingCubesShader;
-
-		[SerializeField]
-		public ComputeShader densityShader;
-		[SerializeField]
-		public ComputeShader overworldCutoffShader;
-
-		[SerializeField]
 		public bool alwaysVisible;
 
 		[SerializeField]

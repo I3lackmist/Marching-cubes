@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using MarchingCubes.Biomes.MonoBehaviours;
 
 namespace MarchingCubes.Chunking.Classes 
 {

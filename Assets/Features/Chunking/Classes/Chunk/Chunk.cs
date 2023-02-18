@@ -3,9 +3,10 @@ using UnityEngine;
 using MarchingCubes.Common.Interfaces;
 using MarchingCubes.Common.Structs;
 using MarchingCubes.Common.Helpers;
-using System.Collections;
+using MarchingCubes.ShaderPasses.Interfaces;
+using MarchingCubes.ShaderPasses.Enums;
 
-namespace MarchingCubes.Chunking.Classes 
+namespace MarchingCubes.Chunking.Classes
 {
 	public class Chunk : MonoBehaviour, IDisposable, IRenderable 
 	{
@@ -23,6 +24,7 @@ namespace MarchingCubes.Chunking.Classes
 		private ComputeBuffer triBuffer;
 		private ComputeBuffer triCountBuffer;
 		private bool visible = false;
+		private bool toBeDeleted = false;
 		
 		public bool Visible 
 		{ 
@@ -31,7 +33,6 @@ namespace MarchingCubes.Chunking.Classes
 
 		public void Render(Action Done) 
 		{
-			SetDensityShaderPosition();
 			InitializeBuffers();
 			bool success = DispatchShaders();
 
@@ -51,21 +52,6 @@ namespace MarchingCubes.Chunking.Classes
 			meshFilter.sharedMesh = mesh;
 		}
 
-		private void SetDensityShaderPosition() 
-		{
-			sharedProperties.densityShader.SetFloats("chunkIndex", new float[] {
-				properties.chunkIndex.x,
-				properties.chunkIndex.y,
-				properties.chunkIndex.z
-			});
-			
-			sharedProperties.overworldCutoffShader.SetFloats("chunkIndex", new float[] {
-				properties.chunkIndex.x,
-				properties.chunkIndex.y,
-				properties.chunkIndex.z
-			});
-		}
-
 		private void InitializeBuffers() 
 		{
 			noiseBuffer = new ComputeBuffer(
@@ -74,8 +60,6 @@ namespace MarchingCubes.Chunking.Classes
 			);
 
 			noiseBuffer.SetData(noiseBufferInit);
-
-			sharedProperties.densityShader.SetBuffer(0, "noiseValues", noiseBuffer);
 
 			triBuffer = new ComputeBuffer(
 				maxTriangles,
@@ -90,27 +74,14 @@ namespace MarchingCubes.Chunking.Classes
 
 		private bool DispatchShaders() 
 		{
-			foreach (var shaderPass in properties.biome.densityShaderPasses) 
+			foreach (var shaderPass in properties.biome.ShaderPasses()) 
 			{
-				shaderPass.SetProperties(sharedProperties.densityShader);
-				sharedProperties.densityShader.Dispatch(0, 1, 1, 1);
-			}
+				shaderPass.SetPosition(properties.chunkIndex);
 
-			sharedProperties.overworldCutoffShader.SetBuffer(0, "noiseValues", noiseBuffer);
-
-			foreach (var shaderPass in properties.biome.overworldShaderPasses) 
-			{
-				shaderPass.SetProperties(sharedProperties.overworldCutoffShader);
-				sharedProperties.overworldCutoffShader.Dispatch(0, 1, 1, 1);
-			}
-
-			sharedProperties.marchingCubesShader.SetBuffer(0, "noiseValues", noiseBuffer);
-			sharedProperties.marchingCubesShader.SetBuffer(0, "resultTriangles", triBuffer);
-
-			foreach (var shaderPass in properties.biome.marchingCubeShaderPasses) 
-			{
-				shaderPass.SetProperties(sharedProperties.marchingCubesShader);
-				sharedProperties.marchingCubesShader.Dispatch(0, 1, 1, 1);
+				shaderPass.SetBuffer(BufferName.NoiseValues, noiseBuffer);
+				shaderPass.SetBuffer(BufferName.ResultTriangles, triBuffer);
+				
+				shaderPass.Execute();
 			}
 			
 			ComputeBuffer.CopyCount(triBuffer, triCountBuffer, 0);
@@ -173,12 +144,11 @@ namespace MarchingCubes.Chunking.Classes
 			}
 		}
 
-		private bool tbd = false;
 		private void FixedUpdate() 
 		{
 			VisibilityCheck();
 
-			if (!tbd) tbd = DistanceCheck();
+			if (!toBeDeleted) toBeDeleted = DistanceCheck();
 		}
 		
 

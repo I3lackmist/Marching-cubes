@@ -9,7 +9,6 @@ float size;
 float3 chunkIndex;
 
 int octaves;
-float maxValue;
 float scale;
 float lacunarity;
 float persistence;
@@ -19,8 +18,6 @@ int seed;
 
 float minHeight;
 float maxheight;
-
-float constant;
 
 [numthreads(8, 8, 8)]
 void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
@@ -53,11 +50,11 @@ void NoiseMap (int3 tid : SV_DISPATCHTHREADID)
 		amplitude = amplitude * persistence;
 	}
 
-	if (noiseVal > maxValue) {
-		noiseVal = maxValue;
+	if (noiseVal > octaves) {
+		noiseVal = octaves;
 	}
 
-	noiseVal = noiseVal / maxValue + constant;
+	noiseVal = noiseVal / octaves;
 
 	noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseValues[tid.x + tid.y * 8 + tid.z * 64] + noiseVal;
 }

@@ -1,0 +1,85 @@
+#include "./FastNoise.hlsl"
+
+#pragma kernel HeightMap 
+
+RWStructuredBuffer<float> noiseValues;
+
+float size;
+float3 chunkIndex;
+
+int octaves;
+float scale;
+float lacunarity;
+float persistence;
+
+float minHeight;
+float maxHeight;
+
+int noiseType;
+int seed;
+
+float isoLevel = 0.5;
+// add iso level via props
+
+[numthreads(8, 8, 8)]
+void HeightMap (int3 tid : SV_DISPATCHTHREADID)
+{
+    int index = tid.x + tid.y * 8 + tid.z * 64;
+    float posY = (float)tid.y + chunkIndex.y * (size-1);
+	
+    if (posY < minHeight) 
+    {
+        noiseValues[index] = 0;
+        return;
+    }
+    
+    float posX = (float)tid.x + chunkIndex.x * (size-1);
+	float posZ = (float)tid.z + chunkIndex.z * (size-1);
+
+    fnl_state noise = fnlCreateState(seed);
+	noise.noise_type = noiseType;
+
+	float frequency = 1;
+	float amplitude = 1;
+
+	float noiseValue = 0;
+	float heightValue = 0;
+
+	float sampleX;
+	float sampleZ;
+
+
+	for (int i = 0; i < octaves; i++) {
+		sampleX = posX / scale * frequency;
+		sampleZ = posZ / scale * frequency;
+
+		noiseValue = noiseValue + ((fnlGetNoise2D(noise, sampleX, sampleZ) + 1) * 0.5) * amplitude;
+
+		frequency = frequency * lacunarity;
+		amplitude = amplitude * persistence;
+	}
+
+    float absMin = (minHeight < 0) * (minHeight * -1) + (minHeight >= 0) * minHeight;
+    float absMax = (maxHeight < 0) * (maxHeight * -1) + (maxHeight >= 0) * maxHeight;
+    
+    float range = absMin + absMax;
+
+    heightValue = noiseValue * range - absMin;
+
+    if (posY < heightValue) 
+    {
+        // noiseValue = 0;
+        // noiseValue = (heightValue - posY) * 0.05;
+        noiseValue = isoLevel - (heightValue - posY) * 0.05;
+    }
+    else {
+        // noiseValue = 1;
+        // noiseValue = (posY - heightValue) * 0.05;
+        noiseValue = isoLevel + (posY - heightValue) * 0.05;
+    }
+
+    if (noiseValue < 0) noiseValue = 0;
+    if (noiseValue > 1) noiseValue = 1;
+
+	noiseValues[index] = noiseValue;
+}

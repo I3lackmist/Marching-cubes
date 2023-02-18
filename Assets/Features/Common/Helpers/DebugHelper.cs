@@ -1,6 +1,6 @@
 using System.Linq;
-using MarchingCubes.Common.Structs;
 using UnityEngine;
+using MarchingCubes.Common.Structs;
 
 namespace MarchingCubes.Common.Helpers {
     public static class DebugHelper

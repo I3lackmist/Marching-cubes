@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MarchingCubes.Common.Helpers;
 using UnityEngine;
 
 namespace MarchingCubes.Chunking.Classes 
@@ -40,6 +41,10 @@ namespace MarchingCubes.Chunking.Classes
 			Brush = new List<Vector3Int>();
 
 			CircleBrush(size);
+
+			Brush.Sort((Vector3Int one, Vector3Int another) => Vector3IntExtensions.MagnitudeComparer(one, another));
 		}
+
+		
 	}
 }

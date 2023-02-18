@@ -11,6 +11,7 @@ struct ResultTriangle {
 AppendStructuredBuffer<ResultTriangle> resultTriangles;
 RWStructuredBuffer<float> noiseValues;
 
+float3 chunkIndex;
 float distanceBetweenPoints;
 float isoLevel;
 

@@ -1,0 +1,77 @@
+#include "./FastNoise.hlsl"
+
+#pragma kernel CaveGen 
+
+RWStructuredBuffer<float> noiseValues;
+
+float size;
+
+float3 chunkIndex;
+
+int octaves;
+float scale;
+float lacunarity;
+float persistence;
+
+int noiseType;
+int seed;
+
+float isoLevel = 0.5;
+// add iso level via props
+
+[numthreads(8, 8, 8)]
+void CaveGen (int3 tid : SV_DISPATCHTHREADID)
+{
+    int index = tid.x + tid.y * 8 + tid.z * 64;
+    float currentNoiseValue = noiseValues[index];
+
+	fnl_state noise = fnlCreateState(seed);
+
+	noise.noise_type = noiseType;
+
+	float noiseValue = 0;
+
+	float frequency = 1;
+	float amplitude = 1;
+
+	float posX = (float)tid.x + chunkIndex.x * (size-1);
+	float posY = (float)tid.y + chunkIndex.y * (size-1);
+	float posZ = (float)tid.z + chunkIndex.z * (size-1);
+
+	float sampleX;
+	float sampleY;
+	float sampleZ;
+
+	for (int i = 0; i < octaves; i++) {
+		sampleX = posX / scale * frequency;
+		sampleY = posY / scale * frequency;
+		sampleZ = posZ / scale * frequency;
+
+		noiseValue = noiseValue + ((fnlGetNoise3D(noise, sampleX, sampleY, sampleZ) + 1) * 0.5) * amplitude;
+
+		frequency = frequency * lacunarity;
+		amplitude = amplitude * persistence;
+	}
+
+	if (noiseValue > octaves) {
+		noiseValue = octaves;
+	}
+
+	noiseValue = noiseValue / octaves;
+
+	//consider adding another buffer for the height taken from heightmap
+	//consider making this logarithmic
+	float strength = 0;
+	if (posY < 0) strength = (-posY) * 0.01;
+
+	if (strength > 1) strength = 1;
+	if (strength < 0) strength = 0;
+
+	noiseValue = currentNoiseValue + noiseValue * strength;
+	
+	if (noiseValue < 0) noiseValue = 0;
+
+	if (noiseValue > 1) noiseValue = 1;
+
+	noiseValues[index] = noiseValue;
+}

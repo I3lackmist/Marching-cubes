@@ -115,7 +115,7 @@ namespace MarchingCubes.Chunking.Classes
 				chunk.parent = this;
 				chunk.sharedProperties = sharedChunkProperties;
 				chunk.properties.chunkIndex = point;
-				chunk.properties.biome = properties.biomes[0];
+				chunk.properties.biome = properties.biomeMap.GetBiome(point);
 
 				renderQueue.Enqueue(chunk);
 			}

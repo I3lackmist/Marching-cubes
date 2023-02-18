@@ -20,6 +20,11 @@ float maxHeight;
 
 float constant;
 
+// just do a heightmap up above
+// then do a mask type thing
+// in a small height between over and underground, preserve +1 if area is above ground or 0 if under
+
+
 [numthreads(8, 8, 8)]
 void OverworldCutoff(int3 tid : SV_DISPATCHTHREADID)
 {
@@ -27,22 +32,20 @@ void OverworldCutoff(int3 tid : SV_DISPATCHTHREADID)
 
 	if (posY < minHeight) return;
 
-    //safe to remove
-    if (posY == 0) 
-    {
-        noiseValues[tid.x + tid.y * 8 + tid.z * 64] = 0;
-        return;
-    } 
+	int index = tid.x + tid.y * 8 + tid.z * 64;
+	float noiseVal = noiseValues[index] + constant;
 
     if (posY > maxHeight) 
     {
         float unitsAwayFromMax = posY - maxHeight;
-        noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseValues[tid.x + tid.y * 8 + tid.z * 64] + unitsAwayFromMax * 0.2;
+        noiseValues[index] = noiseVal + unitsAwayFromMax * 0.2;
+
         return;
     }
 
 	fnl_state noise = fnlCreateState(seed);
 	noise.noise_type = noiseType;
+
 
 	float heightVal = 0;
 
@@ -55,12 +58,16 @@ void OverworldCutoff(int3 tid : SV_DISPATCHTHREADID)
 	float sampleX;
 	float sampleZ;
 
+	float randomOffset = 0;
+
 	for (int i = 0; i < octaves; i++) {
 		sampleX = posX / scale * frequency;
 		sampleZ = posZ / scale * frequency;
 
 		heightVal = heightVal + ((fnlGetNoise2D(noise, sampleX, sampleZ) + 1) * 0.5) * amplitude;
 
+		randomOffset = randomOffset + ((fnlGetNoise2D(noise, sampleX, sampleZ) + 1) * 0.5) * amplitude;
+		
 		frequency = frequency * lacunarity;
 		amplitude = amplitude * persistence;
 	}
@@ -68,8 +75,8 @@ void OverworldCutoff(int3 tid : SV_DISPATCHTHREADID)
 	heightVal = heightVal / maxValue + constant;
 	
 	if (posY < heightVal + minHeight) {
-        float unitsAway = (heightVal + minHeight) - posY;
-		noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseValues[tid.x + tid.y * 8 + tid.z * 64] - unitsAway * 0.2;
+		float unitsAway = (heightVal + minHeight) - posY;
+		noiseValues[tid.x + tid.y * 8 + tid.z * 64] = noiseVal - unitsAway * 0.2;
 		// noiseValues[tid.x + tid.y * 8 + tid.z * 64] = 0;
     }
 }

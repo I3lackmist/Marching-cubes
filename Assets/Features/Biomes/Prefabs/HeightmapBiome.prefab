@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2946018062769581668
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2946018062769581669}
+  - component: {fileID: 2946018062769581690}
+  m_Layer: 0
+  m_Name: HeightmapBiome
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2946018062769581669
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2946018062769581668}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2946018062769581690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2946018062769581668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8edb58d9aac7a894f89915b684a5ec77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  biomeName: 
+  _heightMapShaderPasses:
+  - noiseProperties:
+      octaves: 1
+      lacunarity: 1
+      persistence: 1
+      scale: 0.1
+      seed: 0
+      size: 8
+      noiseType: 0
+    minHeight: 0
+    maxHeight: 20
+    _shader: {fileID: 7200000, guid: 502ca83e450b3af418e6dbc2808251b8, type: 3}
+  _noiseShaderPasses: []
+  _marchingCubeShaderPasses:
+  - isoLevel: 0.5
+    distanceBetweenPoints: 4.571429
+    _shader: {fileID: 7200000, guid: 78cea64fb9a8dee4386971400132c900, type: 3}
