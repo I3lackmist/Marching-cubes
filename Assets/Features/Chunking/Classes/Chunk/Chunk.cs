@@ -198,7 +198,6 @@ namespace MarchingCubes.Chunking.Classes
 		
 		private bool DistanceCheck() 
 		{
-
 			int distanceFromPlayer = Mathf.FloorToInt(
 				Vector3Int.Distance(
 					GridHelper.ChunkIndexFromPosition(
