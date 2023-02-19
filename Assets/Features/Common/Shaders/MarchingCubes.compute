@@ -60,15 +60,14 @@ void MarchingCubes (int3 gtid : SV_DISPATCHTHREADID) {
     for (int j = 0; j < midpointVertexCount/3; j++) {
         ResultTriangle resultTriangle;
 
-        float3 midpointA;
-        float3 midpointB;
-        float3 midpointC;
-        
-        float point1;
-        float point2;
-        
-        point1 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].x;
-        point2 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].y;
+        // standard
+        // resultTriangle.vertexA = (cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].x]     + cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].y])     / 2;
+        // resultTriangle.vertexB = (cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].x] + cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 1]].y]) / 2;
+        // resultTriangle.vertexC = (cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].x] + cornerPositions[MIDPOINT_PAIRS[TRI_TABLE[index][j * 3 + 2]].y]) / 2;
+
+        // interpolated
+        float point1 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].x;
+        float point2 = MIDPOINT_PAIRS[TRI_TABLE[index][j * 3]].y;
 
         resultTriangle.vertexA = interpolateVerts(
             cornerPositions[point1],

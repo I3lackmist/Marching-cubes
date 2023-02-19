@@ -14,14 +14,16 @@ namespace MarchingCubes.ShaderPasses.Classes
         public float isoLevel;
 
         [SerializeField]
-        public float distanceBetweenPoints;
-
-        [SerializeField]
         private ComputeShader _shader;
 
         private static string[] _acceptedBufferNames = {
             BufferName.NoiseValues,
             BufferName.ResultTriangles
+        };
+
+        private static string[] _acceptedPropertyNames = {
+            ShaderPropertyName.ChunkIndex,
+            ShaderPropertyName.DistanceBetweenPoints
         };
 
         public void Execute()
@@ -38,15 +40,33 @@ namespace MarchingCubes.ShaderPasses.Classes
             }
         }
 
-        public void SetPosition(Vector3Int position)
+        public void SetProperty(string propertyName, float value)
         {
-            _shader.SetFloats(ShaderPropertyName.ChunkIndex, position.ToFloatArray());
+            if (_acceptedPropertyNames.Any(name => name.Equals(propertyName))) 
+            {
+                _shader.SetFloat(propertyName, value);
+            }
+        }
+
+        public void SetProperty(string propertyName, Vector3Int value)
+        {
+            if (_acceptedPropertyNames.Any(name => name.Equals(propertyName))) 
+            {
+                _shader.SetFloats(propertyName, value.ToFloatArray());
+            }
+        }
+       
+        public void SetProperty(string propertyName, int value)
+        {
+            if (_acceptedPropertyNames.Any(name => name.Equals(propertyName))) 
+            {
+                _shader.SetFloats(propertyName, value);
+            }
         }
 
         private void SetProperties()
         {
 			_shader.SetFloat("isoLevel", isoLevel);
-            _shader.SetFloat("distanceBetweenPoints", distanceBetweenPoints);
         }
     }
 }

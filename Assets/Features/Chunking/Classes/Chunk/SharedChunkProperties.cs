@@ -11,6 +11,9 @@ namespace MarchingCubes.Chunking.Classes
 
 		[SerializeField]
 		public float maxDistanceFromChunk;
+		
+		[SerializeField]
+		public float distanceBetweenPoints;
 
 		[SerializeField]
 		public bool alwaysVisible;

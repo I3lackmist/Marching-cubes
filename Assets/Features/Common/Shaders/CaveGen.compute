@@ -14,8 +14,13 @@ float lacunarity;
 float persistence;
 float baseConstant;
 
+float distanceBetweenPoints;
+
 int noiseType;
 int seed;
+
+int generateEverywhere;
+int gridpointsFromSurface;
 
 [numthreads(8, 8, 8)]
 void CaveGen (int3 tid : SV_DISPATCHTHREADID)
@@ -24,11 +29,16 @@ void CaveGen (int3 tid : SV_DISPATCHTHREADID)
     int heightMapIndex = tid.x + tid.z * 8;
 
 	float posY = (float)tid.y + chunkIndex.y * (size-1);
+    float worldPosY = distanceBetweenPoints * posY;
 
     float currentNoiseValue = noiseValues[index];
 	float heightValue = heightValues[heightMapIndex];
 	
-	if (posY > heightValue) {
+	if (
+		worldPosY > heightValue - distanceBetweenPoints * gridpointsFromSurface && 
+		generateEverywhere < 1
+	) 
+	{
 		return;
 	} 
 

@@ -179,6 +179,7 @@ MonoBehaviour:
   sharedChunkProperties:
     worldSize: 32
     maxDistanceFromChunk: 8
+    distanceBetweenPoints: 4.571429
     alwaysVisible: 1
     player: {fileID: 0}
     parentTransform: {fileID: 80071373}
@@ -638,11 +639,11 @@ PrefabInstance:
       objectReference: {fileID: 7200000, guid: 8b2a4a6a75cf5d34a9f2a0423865eae1, type: 3}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].maxHeight
-      value: 10
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].minHeight
-      value: -15
+      value: -75
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _marchingCubeShaderPasses.Array.data[0].minIsoLevel
@@ -659,6 +660,10 @@ PrefabInstance:
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _caveGenShaderPasses.Array.data[0].noiseProperties.size
       value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
+      propertyPath: _caveGenShaderPasses.Array.data[0].gridpointsFromSurface
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _caveGenShaderPasses.Array.data[0].noiseProperties.scale

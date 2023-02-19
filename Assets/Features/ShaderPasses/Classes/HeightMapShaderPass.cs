@@ -28,6 +28,11 @@ namespace MarchingCubes.ShaderPasses.Classes
             BufferName.HeightValues
         };
 
+        private static string[] _acceptedPropertyNames = {
+            ShaderPropertyName.ChunkIndex,
+            ShaderPropertyName.DistanceBetweenPoints
+        };
+
         public void Execute()
         {
             this.SetProperties();
@@ -42,9 +47,28 @@ namespace MarchingCubes.ShaderPasses.Classes
             }
         }
 
-        public void SetPosition(Vector3Int position)
+        public void SetProperty(string propertyName, float value)
         {
-            _shader.SetFloats(ShaderPropertyName.ChunkIndex, position.ToFloatArray());
+            if (_acceptedPropertyNames.Any(name => name.Equals(propertyName))) 
+            {
+                _shader.SetFloat(propertyName, value);
+            }
+        }
+
+        public void SetProperty(string propertyName, Vector3Int value)
+        {
+            if (_acceptedPropertyNames.Any(name => name.Equals(propertyName))) 
+            {
+                _shader.SetFloats(propertyName, value.ToFloatArray());
+            }
+        }
+       
+        public void SetProperty(string propertyName, int value)
+        {
+            if (_acceptedPropertyNames.Any(name => name.Equals(propertyName))) 
+            {
+                _shader.SetFloats(propertyName, value);
+            }
         }
 
         private void SetProperties()

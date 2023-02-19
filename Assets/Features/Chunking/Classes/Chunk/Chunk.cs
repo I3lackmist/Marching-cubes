@@ -85,7 +85,8 @@ namespace MarchingCubes.Chunking.Classes
 		{
 			foreach (var shaderPass in properties.biome.ShaderPasses()) 
 			{
-				shaderPass.SetPosition(properties.chunkIndex);
+				shaderPass.SetProperty(ShaderPropertyName.ChunkIndex, properties.chunkIndex);
+				shaderPass.SetProperty(ShaderPropertyName.DistanceBetweenPoints, sharedProperties.distanceBetweenPoints);
 
 				shaderPass.SetBuffer(BufferName.NoiseValues, noiseBuffer);
 				shaderPass.SetBuffer(BufferName.HeightValues, heightBuffer);

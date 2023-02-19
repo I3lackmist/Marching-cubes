@@ -17,6 +17,8 @@ float baseConstant;
 float minHeight;
 float maxHeight;
 
+float distanceBetweenPoints;
+
 int noiseType;
 int seed;
 
@@ -29,8 +31,9 @@ void HeightMap (int3 tid : SV_DISPATCHTHREADID)
     int heightMapIndex = tid.x + tid.z * 8;
 
     float posY = (float)tid.y + chunkIndex.y * (size-1);
+    float worldPosY = distanceBetweenPoints * posY;
 	
-    if (posY < minHeight) 
+    if (worldPosY < minHeight) 
     {
         noiseValues[index] = 0;
         return;
@@ -80,12 +83,12 @@ void HeightMap (int3 tid : SV_DISPATCHTHREADID)
 
     heightValue = noiseValue * range - absMin;
 
-    if (posY < heightValue) 
+    if (worldPosY < heightValue) 
     {
-        noiseValue = baseValue - (heightValue - posY) * 0.05;
+        noiseValue = baseValue - (heightValue - worldPosY) * 0.05;
     }
     else {
-        noiseValue = baseValue + (posY - heightValue) * 0.05;
+        noiseValue = baseValue + (worldPosY - heightValue) * 0.05;
     }
 
     if (noiseValue < 0) noiseValue = 0;
