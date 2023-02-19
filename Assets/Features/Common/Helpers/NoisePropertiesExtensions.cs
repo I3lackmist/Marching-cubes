@@ -13,9 +13,7 @@ namespace MarchingCubes.Common.Helpers
             computeShader.SetFloat("scale", noiseProperties.scale);
             computeShader.SetFloat("lacunarity", noiseProperties.lacunarity);
             computeShader.SetFloat("persistence", noiseProperties.persistence);
-            // computeShader.SetFloat("maxValue", noiseProperties.maxValue);
             computeShader.SetFloat("size", noiseProperties.size);
-            // computeShader.SetFloat("constant", noiseProperties.constant);
         }
     }
 }

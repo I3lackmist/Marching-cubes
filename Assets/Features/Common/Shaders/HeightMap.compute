@@ -3,6 +3,7 @@
 #pragma kernel HeightMap 
 
 RWStructuredBuffer<float> noiseValues;
+RWStructuredBuffer<float> heightValues;
 
 float size;
 float3 chunkIndex;
@@ -18,13 +19,14 @@ float maxHeight;
 int noiseType;
 int seed;
 
-float isoLevel = 0.5;
-// add iso level via props
+float baseValue = 0.5;
 
 [numthreads(8, 8, 8)]
 void HeightMap (int3 tid : SV_DISPATCHTHREADID)
 {
     int index = tid.x + tid.y * 8 + tid.z * 64;
+    int heightMapIndex = tid.x + tid.z * 8;
+
     float posY = (float)tid.y + chunkIndex.y * (size-1);
 	
     if (posY < minHeight) 
@@ -68,18 +70,15 @@ void HeightMap (int3 tid : SV_DISPATCHTHREADID)
 
     if (posY < heightValue) 
     {
-        // noiseValue = 0;
-        // noiseValue = (heightValue - posY) * 0.05;
-        noiseValue = isoLevel - (heightValue - posY) * 0.05;
+        noiseValue = baseValue - (heightValue - posY) * 0.05;
     }
     else {
-        // noiseValue = 1;
-        // noiseValue = (posY - heightValue) * 0.05;
-        noiseValue = isoLevel + (posY - heightValue) * 0.05;
+        noiseValue = baseValue + (posY - heightValue) * 0.05;
     }
 
     if (noiseValue < 0) noiseValue = 0;
     if (noiseValue > 1) noiseValue = 1;
 
+    heightValues[heightMapIndex] = heightValue;
 	noiseValues[index] = noiseValue;
 }

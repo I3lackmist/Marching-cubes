@@ -3,9 +3,9 @@
 #pragma kernel CaveGen 
 
 RWStructuredBuffer<float> noiseValues;
+RWStructuredBuffer<float> heightValues;
 
 float size;
-
 float3 chunkIndex;
 
 int octaves;
@@ -16,14 +16,20 @@ float persistence;
 int noiseType;
 int seed;
 
-float isoLevel = 0.5;
-// add iso level via props
-
 [numthreads(8, 8, 8)]
 void CaveGen (int3 tid : SV_DISPATCHTHREADID)
 {
     int index = tid.x + tid.y * 8 + tid.z * 64;
+    int heightMapIndex = tid.x + tid.z * 8;
+
+	float posY = (float)tid.y + chunkIndex.y * (size-1);
+
     float currentNoiseValue = noiseValues[index];
+	float heightValue = heightValues[heightMapIndex];
+	
+	if (posY > heightValue) {
+		return;
+	} 
 
 	fnl_state noise = fnlCreateState(seed);
 
@@ -35,7 +41,6 @@ void CaveGen (int3 tid : SV_DISPATCHTHREADID)
 	float amplitude = 1;
 
 	float posX = (float)tid.x + chunkIndex.x * (size-1);
-	float posY = (float)tid.y + chunkIndex.y * (size-1);
 	float posZ = (float)tid.z + chunkIndex.z * (size-1);
 
 	float sampleX;
@@ -53,25 +58,15 @@ void CaveGen (int3 tid : SV_DISPATCHTHREADID)
 		amplitude = amplitude * persistence;
 	}
 
-	if (noiseValue > octaves) {
+	if (noiseValue > octaves) 
+	{
 		noiseValue = octaves;
 	}
 
 	noiseValue = noiseValue / octaves;
-
-	//consider adding another buffer for the height taken from heightmap
-	//consider making this logarithmic
-	float strength = 0;
-	if (posY < 0) strength = (-posY) * 0.01;
-
-	if (strength > 1) strength = 1;
-	if (strength < 0) strength = 0;
-
-	noiseValue = currentNoiseValue + noiseValue * strength;
 	
 	if (noiseValue < 0) noiseValue = 0;
-
 	if (noiseValue > 1) noiseValue = 1;
 
-	noiseValues[index] = noiseValue;
+	noiseValues[index] = currentNoiseValue + noiseValue;
 }

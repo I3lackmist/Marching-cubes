@@ -27,7 +27,7 @@ namespace MarchingCubes.Biomes.MonoBehaviours
 
         public Biome GetBiome(string biomeName) 
         {
-            return _biomes.First(biome => biome.biomeName == biomeName);
+            return _biomes.First(biome => gameObject.name == biomeName);
         }
 
         public Biome GetBiome(Vector3Int position) 

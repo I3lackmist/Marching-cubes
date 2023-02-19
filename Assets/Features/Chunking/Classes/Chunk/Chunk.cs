@@ -18,9 +18,13 @@ namespace MarchingCubes.Chunking.Classes
 		private MeshFilter meshFilter;
 		private MeshRenderer meshRenderer;
 		private static int maxTriangles = 7*7*7 * 5;
-		private static int maxPointsInCube = 8*8*8;
-		private static float[] noiseBufferInit = new float[maxPointsInCube];
+
+		private static int size = 8;
+		private static int pointsInPlane = size*size;
+		private static int pointsInCube = size*size*size;
+		private static float[] noiseBufferInit = new float[pointsInCube];
 		private ComputeBuffer noiseBuffer;
+		private ComputeBuffer heightBuffer;
 		private ComputeBuffer triBuffer;
 		private ComputeBuffer triCountBuffer;
 		private bool visible = false;
@@ -55,11 +59,16 @@ namespace MarchingCubes.Chunking.Classes
 		private void InitializeBuffers() 
 		{
 			noiseBuffer = new ComputeBuffer(
-				maxPointsInCube,
+				pointsInCube,
 				sizeof(float)
 			);
 
 			noiseBuffer.SetData(noiseBufferInit);
+
+			heightBuffer = new ComputeBuffer(
+				pointsInPlane,
+				sizeof(float)
+			);
 
 			triBuffer = new ComputeBuffer(
 				maxTriangles,
@@ -79,6 +88,7 @@ namespace MarchingCubes.Chunking.Classes
 				shaderPass.SetPosition(properties.chunkIndex);
 
 				shaderPass.SetBuffer(BufferName.NoiseValues, noiseBuffer);
+				shaderPass.SetBuffer(BufferName.HeightValues, heightBuffer);
 				shaderPass.SetBuffer(BufferName.ResultTriangles, triBuffer);
 				
 				shaderPass.Execute();
@@ -115,6 +125,12 @@ namespace MarchingCubes.Chunking.Classes
 			{
 				noiseBuffer.Release();
 				noiseBuffer.Dispose();
+			}
+
+			if (heightBuffer != null) 
+			{
+				heightBuffer.Release();
+				heightBuffer.Dispose();
 			}
 
 			if (triBuffer != null) 

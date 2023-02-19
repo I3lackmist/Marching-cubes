@@ -10,9 +10,6 @@ namespace MarchingCubes.Biomes.MonoBehaviours
     public class Biome : MonoBehaviour
     {
         [SerializeField]
-        public string biomeName;
-
-        [SerializeField]
         private List<HeightMapShaderPass> _heightMapShaderPasses;
         
         [SerializeField]
@@ -26,7 +23,6 @@ namespace MarchingCubes.Biomes.MonoBehaviours
 
         public List<IShaderPass> ShaderPasses()
         {
-
             var list = new List<IShaderPass>();
             
             list.AddRange(_heightMapShaderPasses);

@@ -24,7 +24,8 @@ namespace MarchingCubes.ShaderPasses.Classes
         private ComputeShader _shader;
 
         private static string[] _acceptedBufferNames = {
-            BufferName.NoiseValues
+            BufferName.NoiseValues,
+            BufferName.HeightValues
         };
 
         public void Execute()

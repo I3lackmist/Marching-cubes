@@ -584,7 +584,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2946018062769581668, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: m_Name
-      value: HeightmapBiome
+      value: HeightmapTestBiome
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581669, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: m_RootOrder
@@ -640,10 +640,18 @@ PrefabInstance:
       objectReference: {fileID: 7200000, guid: 8b2a4a6a75cf5d34a9f2a0423865eae1, type: 3}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].maxHeight
-      value: 25
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].minHeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
+      propertyPath: _marchingCubeShaderPasses.Array.data[0].minIsoLevel
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
+      propertyPath: _marchingCubeShaderPasses.Array.data[0].depthOpenness
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
@@ -668,11 +676,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].noiseProperties.scale
-      value: 0.6
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].noiseProperties.octaves
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _caveGenShaderPasses.Array.data[0].noiseProperties.lacunarity
