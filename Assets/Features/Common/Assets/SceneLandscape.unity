@@ -171,17 +171,15 @@ MonoBehaviour:
     chunkPrefab: {fileID: 8195854062978112890, guid: 9dbf78e282fc232479d25508cdfa63b6, type: 3}
     biomeMap: {fileID: 832180013}
     chunkLimit: 5000
-    brushSize: 5
+    brushSize: 6
   queueProperties:
     processPerCycle: 16
     cycleLength: 0.05
     processInUpdate: 1
   sharedChunkProperties:
-    seed: 2137
-    size: 8
     worldSize: 32
-    maxDistanceFromChunk: 6
-    alwaysVisible: 0
+    maxDistanceFromChunk: 8
+    alwaysVisible: 1
     player: {fileID: 0}
     parentTransform: {fileID: 80071373}
     playerGridPosition: {x: 0, y: 0, z: 0}
@@ -224,7 +222,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -569,12 +567,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   overworldColor: {r: 0.4039216, g: 0.5019608, b: 0.5019608, a: 0}
-  underworldColor: {r: 0.18867922, g: 0.16267437, b: 0.14667138, a: 0}
-  underworldDistance: 50
+  underworldColor: {r: 0.18867922, g: 0.16267437, b: 0.14667138, a: 0.42745098}
+  underworldDistance: 100
   overworldDistance: 300
   changeSpeed: 2
   changeHeight: 0
-  turnOffFog: 1
+  turnOffFog: 0
 --- !u!1001 &2946018063722235498
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -644,7 +642,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].minHeight
-      value: 0
+      value: -15
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _marchingCubeShaderPasses.Array.data[0].minIsoLevel
@@ -664,7 +662,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _caveGenShaderPasses.Array.data[0].noiseProperties.scale
-      value: 0.1
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].noiseProperties.seed
@@ -676,7 +674,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].noiseProperties.scale
-      value: 0.2
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
+      propertyPath: _caveGenShaderPasses.Array.data[0].noiseProperties.noiseType
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].noiseProperties.octaves
@@ -695,8 +697,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
+      propertyPath: _caveGenShaderPasses.Array.data[0].noiseProperties.baseConstant
+      value: -0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].noiseProperties.lacunarity
-      value: 2
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 2946018062769581690, guid: b29a9372acd3118429da7c77b6611b02, type: 3}
       propertyPath: _heightMapShaderPasses.Array.data[0].noiseProperties.persistence

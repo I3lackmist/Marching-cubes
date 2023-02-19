@@ -12,6 +12,7 @@ int octaves;
 float scale;
 float lacunarity;
 float persistence;
+float baseConstant;
 
 float minHeight;
 float maxHeight;
@@ -50,7 +51,6 @@ void HeightMap (int3 tid : SV_DISPATCHTHREADID)
 	float sampleX;
 	float sampleZ;
 
-
 	for (int i = 0; i < octaves; i++) {
 		sampleX = posX / scale * frequency;
 		sampleZ = posZ / scale * frequency;
@@ -60,6 +60,18 @@ void HeightMap (int3 tid : SV_DISPATCHTHREADID)
 		frequency = frequency * lacunarity;
 		amplitude = amplitude * persistence;
 	}
+
+	noiseValue = noiseValue + baseConstant;
+
+    if (noiseValue > octaves) 
+	{
+		noiseValue = octaves;
+	}
+
+	noiseValue = noiseValue / octaves;
+	
+	if (noiseValue < 0) noiseValue = 0;
+	if (noiseValue > 1) noiseValue = 1;
 
     float absMin = (minHeight < 0) * (minHeight * -1) + (minHeight >= 0) * minHeight;
     float absMax = (maxHeight < 0) * (maxHeight * -1) + (maxHeight >= 0) * maxHeight;

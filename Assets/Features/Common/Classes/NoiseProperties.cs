@@ -27,6 +27,9 @@ namespace MarchingCubes.Common.Classes
         public int size;
 
         [SerializeField]
+        public float baseConstant;
+
+        [SerializeField]
         public NoiseType noiseType;
     }
 }

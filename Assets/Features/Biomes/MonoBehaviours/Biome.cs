@@ -14,9 +14,6 @@ namespace MarchingCubes.Biomes.MonoBehaviours
         
         [SerializeField]
         private List<CaveGenShaderPass> _caveGenShaderPasses;
-
-        [SerializeField]
-        private List<NoiseShaderPass> _noiseShaderPasses;
         
         [SerializeField]
         private List<MarchingCubeShaderPass> _marchingCubeShaderPasses;
@@ -27,7 +24,6 @@ namespace MarchingCubes.Biomes.MonoBehaviours
             
             list.AddRange(_heightMapShaderPasses);
             list.AddRange(_caveGenShaderPasses);
-            list.AddRange(_noiseShaderPasses);
             list.AddRange(_marchingCubeShaderPasses);
 
             return list;

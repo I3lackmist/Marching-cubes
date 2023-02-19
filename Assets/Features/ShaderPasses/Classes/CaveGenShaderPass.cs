@@ -36,7 +36,7 @@ namespace MarchingCubes.ShaderPasses.Classes
             }
         }
 
-        public virtual void SetPosition(Vector3Int position)
+        public void SetPosition(Vector3Int position)
         {
             _shader.SetFloats(ShaderPropertyName.ChunkIndex, position.ToFloatArray());
         }

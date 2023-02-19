@@ -12,6 +12,7 @@ int octaves;
 float scale;
 float lacunarity;
 float persistence;
+float baseConstant;
 
 int noiseType;
 int seed;
@@ -57,6 +58,8 @@ void CaveGen (int3 tid : SV_DISPATCHTHREADID)
 		frequency = frequency * lacunarity;
 		amplitude = amplitude * persistence;
 	}
+	
+	noiseValue = noiseValue + baseConstant;
 
 	if (noiseValue > octaves) 
 	{

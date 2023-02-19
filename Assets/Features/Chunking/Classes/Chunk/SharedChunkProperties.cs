@@ -7,12 +7,6 @@ namespace MarchingCubes.Chunking.Classes
 	public class SharedChunkProperties
 	{
 		[SerializeField]
-		public int seed;
-
-		[SerializeField]
-		public float size;
-
-		[SerializeField]
 		public float worldSize;
 
 		[SerializeField]
