@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MarchingCubes.Common.Interfaces;
+using System.Linq;
 
 namespace MarchingCubes.Chunking.Classes 
 {
@@ -10,7 +11,7 @@ namespace MarchingCubes.Chunking.Classes
 	{
 		[SerializeField]
 		public QueueProperties properties;
-		private List<IDisposable> disposables;
+		private List<IDisposable> disposeQueue;
 		private List<IDisposable> disposedObjects;
 
 		private int index;
@@ -19,13 +20,13 @@ namespace MarchingCubes.Chunking.Classes
 
         private void OnEnable() 
 		{
-			disposables = new List<IDisposable>();
+			disposeQueue = new List<IDisposable>();
 			disposedObjects = new List<IDisposable>();
 		}
 
 		public void Enqueue(IDisposable disposable) 
 		{
-			disposables.Add(disposable);
+			disposeQueue.Add(disposable);
 		}
 
 		public void Unqueue(IDisposable disposable) 
@@ -35,25 +36,20 @@ namespace MarchingCubes.Chunking.Classes
 
 		private void CycleAction() 
 		{
-			foreach (var disposedObject in disposedObjects.ToArray()) 
-			{
-				disposables.Remove(disposedObject);
-				disposedObjects.Remove(disposedObject);
-			}
-
-			int processThisCycle = (disposables.Count > properties.processPerCycle) ? properties.processPerCycle : disposables.Count;
+			var processThisCycle = (disposeQueue.Count > properties.processPerCycle) ? properties.processPerCycle : disposeQueue.Count;
 			
 			if (processThisCycle < 0 || processThisCycle > properties.processPerCycle) 
 			{
 				Debug.LogWarning($"Dispose queue processing less than 0 or more than max. Value: {processThisCycle}");
 			}
 
-			for (int i = 0; i < processThisCycle; i++) 
-			{
-				index = (index++) % disposables.Count;
-				IDisposable disposable = disposables[index];
-				if (!disposedObjects.Contains(disposable)) disposable.Dispose();
+			var disposables = disposeQueue.Take(processThisCycle);
+		
+			foreach (var disposable in disposables) {
+				disposable.Dispose();
 			}
+
+			disposeQueue.RemoveRange(0, processThisCycle);
 		}
 		
 		private IEnumerator Cycle() 

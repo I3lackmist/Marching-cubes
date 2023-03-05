@@ -76,7 +76,7 @@ namespace MarchingCubes.Chunking.Classes
 				ComputeBufferType.Append
 			);
 
-			triCountBuffer = new ComputeBuffer (1, sizeof (int), ComputeBufferType.Raw);
+			triCountBuffer = new ComputeBuffer(1, sizeof (int), ComputeBufferType.Raw);
 			
 			triBuffer.SetCounterValue(0);
 		}

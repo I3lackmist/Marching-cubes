@@ -32,7 +32,6 @@ namespace MarchingCubes.Chunking.Classes
 		private void DoneRendering() 
 		{
 			renderingCount--;
-
 			if (renderingCount < 0) {
 				Debug.LogError("Rendering count is less than 0.");
 			}
@@ -65,13 +64,19 @@ namespace MarchingCubes.Chunking.Classes
 
 		private void CycleAction() 
 		{
-			for (int i = 0; i < properties.processPerCycle - renderingCount; i++) {
-				if (!renderQueue.Any()) break;
+			if (!renderQueue.Any()) return;
 
+			var processThisCycle = properties.processPerCycle - renderingCount;
+			processThisCycle = processThisCycle <= renderQueue.Count ? processThisCycle : renderQueue.Count; 
+
+			var renderables = renderQueue.Take(processThisCycle);
+		
+			foreach (var renderable in renderables) {
 				renderingCount++;
-				renderQueue[0].Render(Done);
-				renderQueue.RemoveAt(0);
+				renderable.Render(new Action(DoneRendering));
 			}
+
+			renderQueue.RemoveRange(0, processThisCycle);
 		}
 	}
 }
